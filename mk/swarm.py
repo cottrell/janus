@@ -5,7 +5,6 @@ import subprocess
 from pathlib import Path
 import yaml
 
-SWARM_CLI = Path.home() / "dev/nudge/swarm/cli.py"
 
 def get_session_name(yaml_path):
     try:
@@ -21,9 +20,10 @@ def main():
         print(f"Usage: {sys.argv[0]} [up|down]")
         sys.exit(1)
 
-    from paths import get_data_dir
+    from paths import get_data_dir, resolve_swarm_argv
 
     data_dir = get_data_dir()
+    swarm_base = resolve_swarm_argv()
 
     for f in sorted(data_dir.glob("*.json")):
         try:
@@ -47,8 +47,11 @@ def main():
             continue
 
         if cmd == "up":
+            if not swarm_base:
+                print("swarm CLI not found: install aiswarm on PATH or nudge at ~/dev/nudge", file=sys.stderr)
+                continue
             print(f"swarm up: {yaml_path}")
-            res = subprocess.run([sys.executable, str(SWARM_CLI), "start", str(yaml_path)], cwd=resolved_path)
+            res = subprocess.run([*swarm_base, "start", str(yaml_path)], cwd=resolved_path)
             if res.returncode != 0:
                 print(f"Warning: failed to load swarm session (exit code {res.returncode})", file=sys.stderr)
         elif cmd == "down":

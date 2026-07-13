@@ -1,5 +1,6 @@
 import json
 import os
+import shlex
 import socket
 import subprocess
 import urllib.parse
@@ -18,11 +19,10 @@ from mk.new_project import (
     execute_steps,
     prepare_project,
 )
-from mk.paths import get_data_dir
+from mk.paths import get_data_dir, resolve_swarm_argv
 
 app = FastAPI()
 DATA_DIR = get_data_dir()
-SWARM_CLI = Path.home() / "dev/nudge/swarm/cli.py"
 
 # Per-source mtime caches for expensive enrichments (git, graphify, yaml).
 _git_cache = {}
@@ -598,12 +598,20 @@ def ops_bounce(project: str):
     return {"ok": True}
 
 
+def _swarm_argv(*args: str) -> list[str]:
+    base = resolve_swarm_argv()
+    if not base:
+        raise HTTPException(
+            status_code=500,
+            detail="swarm CLI not found: install aiswarm on PATH or nudge at ~/dev/nudge",
+        )
+    return [*base, *args]
+
+
 @app.post("/api/projects/{project}/swarm/up")
 def swarm_up(project: str):
     root, config = resolve_config(load_project(project), "swarm")
-    if not SWARM_CLI.is_file():
-        raise HTTPException(status_code=500, detail=f"swarm cli not found: {SWARM_CLI}")
-    return run_command(["python3", str(SWARM_CLI), "start", str(config)], root)
+    return run_command(_swarm_argv("start", str(config)), root)
 
 
 @app.post("/api/projects/{project}/swarm/down")
@@ -616,10 +624,11 @@ def swarm_down(project: str):
 @app.post("/api/projects/{project}/swarm/bounce")
 def swarm_bounce(project: str):
     root, config = resolve_config(load_project(project), "swarm")
-    if not SWARM_CLI.is_file():
-        raise HTTPException(status_code=500, detail=f"swarm cli not found: {SWARM_CLI}")
     name = session_name(config)
-    cmd = f"tmux kill-session -t '={name}' 2>/dev/null; sleep 1; python3 {SWARM_CLI} start {config}"
+    argv = _swarm_argv("start", str(config))
+    cmd = f"tmux kill-session -t '={name}' 2>/dev/null; sleep 1; " + " ".join(
+        shlex.quote(a) for a in argv
+    )
     subprocess.Popen(["bash", "-c", cmd], cwd=root, start_new_session=True)
     return {"ok": True}
 
@@ -627,18 +636,13 @@ def swarm_bounce(project: str):
 @app.post("/api/projects/{project}/babysit/start")
 def babysit_start(project: str):
     root, config = resolve_config(load_project(project), "swarm")
-    if not SWARM_CLI.is_file():
-        raise HTTPException(status_code=500, detail=f"swarm cli not found: {SWARM_CLI}")
-    return run_command(["python3", str(SWARM_CLI), "babysit", "start", str(config)], root)
+    return run_command(_swarm_argv("babysit", "start", str(config)), root)
 
 
 @app.post("/api/projects/{project}/babysit/stop")
 def babysit_stop(project: str):
     root, config = resolve_config(load_project(project), "swarm")
-    if not SWARM_CLI.is_file():
-        raise HTTPException(status_code=500, detail=f"swarm cli not found: {SWARM_CLI}")
-    return run_command(["python3", str(SWARM_CLI), "babysit", "stop", str(config)], root)
-
+    return run_command(_swarm_argv("babysit", "stop", str(config)), root)
 
 @app.get("/projects/{project}/graph", response_class=HTMLResponse)
 def project_graph(project: str):

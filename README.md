@@ -12,8 +12,7 @@ Python deps are in `pyproject.toml` (FastAPI, uvicorn, PyYAML). Install/sync onc
 
 ```sh
 uv sync
-# optional: private registry checkout (see Project registry below)
-# export JANUS_DATA_DIR=~/dev/janus-data
+cp -r data.example data   # starter registry; or set JANUS_DATA_DIR (see below)
 make dev
 ```
 
@@ -55,7 +54,7 @@ Features are additive: if a tool is missing, that button/link/status simply does
 | **git** | `meta.last_git_ts` on cards; `git for-each-repo --config=janus.repo`; new-project `git_init` | System package |
 | **tmux** | Session existence checks; ops/swarm kill | System package |
 | **[tmuxp](https://github.com/tmux-python/tmuxp)** | Ops up/down/bounce (`tmuxp load`); `make ops-up` / `ops-down` | `pip install tmuxp` or system package |
-| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | Swarm start/stop, babysit apply/stop/status, `make autostart` | Install so `aiswarm` is on `PATH` (`make install-aiswarm` in nudge). Some Janus helpers still fall back to `~/dev/nudge/swarm/cli.py` until fully switched |
+| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | Swarm start/stop, babysit apply/stop/status, `make autostart` | Prefer `aiswarm` on `PATH` (`make install-aiswarm` in nudge). Fallback: `~/dev/nudge/swarm/cli.py` |
 | **[Backlog.md](https://github.com/MrLesk/Backlog.md)** CLI (`backlog`) | New-project `backlog init`; backlog browser links on cards | Install `backlog` binary; optional per project |
 | **GitHub CLI** (`gh`) | New-project optional `gh repo create --push` | [cli.github.com](https://cli.github.com/); wizard step off by default (`gh_repo: false` in `mk/new_project.defaults.json`) |
 | **graphify** | Graph icon + `/projects/{name}/graph` when `graphify-out/graph.html` exists under `local_path` | External pipeline; Janus only checks for output files |
@@ -70,7 +69,7 @@ The wizard can scaffold a full project stack. Each step is optional (prompted, o
 |------|------------------|---------|
 | `git_init` | `git init` | on |
 | `backlog_init` | `backlog init {name} --defaults` | on |
-| `swarm_init` | `aiswarm init {name}` (or nudge CLI at `~/dev/nudge/swarm/cli.py`) | on |
+| `swarm_init` | `aiswarm init {name}` (fallback: python `~/dev/nudge/swarm/cli.py`) | on |
 | `ops_yaml` | writes `ops.yaml` (tmuxp + backlog browser port from 6430+) | on |
 | `janus_register` | writes `data/{name}.json` locally | on |
 | `janus_repo_list` | `git config --global --add janus.repo {path}` | on |
@@ -85,7 +84,7 @@ These are not yet env-configurable — worth knowing before forking:
 | Assumption | Where |
 |------------|--------|
 | Project dev tree under `~/dev` | `server.py` `DEV_ROOT`, `mk/new_project.py` `dev_root` |
-| Swarm CLI path (prefer `aiswarm` on `PATH`; some code still uses `~/dev/nudge/swarm/cli.py`) | `server.py`, `mk/autostart.py`, `mk/swarm.py`, `mk/new_project.py` |
+| Swarm CLI: `aiswarm` on `PATH`, else `~/dev/nudge/swarm/cli.py` | `mk/paths.py` `resolve_swarm_argv()` |
 | IDE URLs `https://localhost:9321`, `http://localhost:9323`, `http://localhost:9322` | `server.py`, `ide/` ops configs |
 | Babysit/swarm runtime under `/tmp/nudge-swarm/{project}/` | `server.py` status polling |
 | Single host | Janus, tmux, and MuxPod SSH target on one machine — TASK-14 for multi-server |

@@ -15,13 +15,12 @@ import sys
 from pathlib import Path
 
 try:
-    from mk.paths import JANUS_ROOT, get_data_dir
+    from mk.paths import JANUS_ROOT, get_data_dir, resolve_swarm_argv
 except ImportError:
-    from paths import JANUS_ROOT, get_data_dir
+    from paths import JANUS_ROOT, get_data_dir, resolve_swarm_argv
 
 JANUS_DIR = JANUS_ROOT
 DEFAULTS_PATH = Path(__file__).parent / "new_project.defaults.json"
-NUDGE_CLI = Path.home() / "dev/nudge/swarm/cli.py"
 
 STEP_KEYS = (
     "create_dir",
@@ -68,9 +67,11 @@ def describe_step(key, ctx):
     if key == "backlog_init":
         return f"Initialize Backlog in {d}", f"cd {d} && backlog init {name} --defaults"
     if key == "swarm_init":
+        base = resolve_swarm_argv() or ["aiswarm"]
+        cmd = " ".join(base + ["init", name, "--root", str(project_path)])
         return (
             f"Initialize AI swarm in {d}",
-            f"cd {d} && python {NUDGE_CLI} init {name} --root {project_path}",
+            f"cd {d} && {cmd}",
         )
     if key == "ops_yaml":
         port = ctx["backlog_port"]
@@ -274,14 +275,15 @@ def step_swarm_init(project_path, name, log=None):
     if (project_path / "swarm").exists():
         say("  swarm/ already exists — skipping", log)
         return
-    if not NUDGE_CLI.is_file():
-        say(f"  Warning: nudge CLI not found at {NUDGE_CLI} — skipping", log)
+    base = resolve_swarm_argv()
+    if not base:
+        say("  Warning: aiswarm/nudge CLI not found — skipping swarm init", log)
         return
     subprocess.run(
-        [sys.executable, str(NUDGE_CLI), "init", name, "--root", str(project_path)],
+        [*base, "init", name, "--root", str(project_path)],
         check=True,
     )
-    say("  nudge swarm init", log)
+    say("  aiswarm init", log)
 
 
 def step_ops_yaml(project_path, name, backlog_port, log=None):

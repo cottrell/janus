@@ -6,7 +6,6 @@ import subprocess
 from pathlib import Path
 import yaml
 
-SWARM_CLI = Path.home() / "dev/nudge/swarm/cli.py"
 
 def get_session_name(yaml_path):
     try:
@@ -31,9 +30,10 @@ def main():
     print(f"Waiting {delay} seconds before running autostart operations...")
     time.sleep(delay)
 
-    from paths import get_data_dir
+    from paths import get_data_dir, resolve_swarm_argv
 
     data_dir = get_data_dir()
+    swarm_base = resolve_swarm_argv()
 
     for f in sorted(data_dir.glob("*.json")):
         try:
@@ -78,8 +78,11 @@ def main():
                     if tmux_session_exists(sess):
                         print(f"[{project}] swarm session '{sess}' already running.")
                     else:
+                        if not swarm_base:
+                            print(f"[{project}] swarm CLI not found: install aiswarm or nudge", file=sys.stderr)
+                            continue
                         print(f"[{project}] autostarting swarm: {yaml_path}")
-                        res = subprocess.run([sys.executable, str(SWARM_CLI), "start", str(yaml_path)], cwd=resolved_path)
+                        res = subprocess.run([*swarm_base, "start", str(yaml_path)], cwd=resolved_path)
                         if res.returncode != 0:
                             print(f"[{project}] Warning: failed to load swarm session (exit code {res.returncode})", file=sys.stderr)
             else:
