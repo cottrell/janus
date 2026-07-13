@@ -1,0 +1,12 @@
+session_name: ops-ide
+start_directory: ~/dev/janus
+windows:
+  - window_name: code-server
+    panes:
+      - bash ide/code-server/run.sh
+  - window_name: filebrowser
+    panes:
+      - bash ide/filebrowser/run.sh
+  - window_name: ttyd
+    panes:
+      - bash ide/ttyd/run.sh

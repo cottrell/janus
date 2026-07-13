@@ -1,0 +1,16 @@
+{
+  "dev_root": "~/dev",
+  "backlog_port_start": 6430,
+  "gh_visibility": "private",
+  "steps": {
+    "create_dir": true,
+    "git_init": true,
+    "readme": true,
+    "backlog_init": true,
+    "swarm_init": true,
+    "ops_yaml": true,
+    "janus_register": true,
+    "janus_repo_list": true,
+    "gh_repo": false
+  }
+}

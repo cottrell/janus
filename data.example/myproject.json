@@ -1,0 +1,11 @@
+{
+  "project": "myproject",
+  "local_path": "~/dev/myproject",
+  "description": "optional one-liner",
+  "links": [
+    {
+      "label": "Dev server",
+      "url": "http://localhost:3000"
+    }
+  ]
+}

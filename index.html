@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Janus — Dev Links</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    :root {
+      --hover-delay: 0.35s;
+      --card-icon-size: 1.5rem;
+      --card-icon-gap: 0.2rem;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 1.5rem 1rem;
+    }
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
+      gap: 1rem;
+    }
+    .filter-nav {
+      margin: -0.75rem 0 0.35rem;
+    }
+    .filter-btn,
+    .top-status-tile {
+      background: #111827;
+      border: 1px solid #2d3348;
+      border-radius: 4px;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 0.7rem;
+      max-width: 10rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .filter-btn { padding: 0.18rem 0.4rem; }
+    .filter-btn:hover {
+      color: #cbd5e1;
+      border-color: #475569;
+    }
+    .filter-btn.active,
+    .matrix-name.active {
+      background: #0f172a;
+      border-color: #3b82f6;
+      color: #dbeafe;
+    }
+    .top-control-list,
+    .top-status {
+      display: grid;
+      gap: 0.35rem;
+      margin-bottom: 1rem;
+    }
+    .top-control-list {
+      margin-bottom: 0.35rem;
+    }
+    .top-control-row,
+    .top-status-row {
+      display: grid;
+      grid-template-columns: 4rem 1fr;
+      align-items: start;
+      gap: 0.5rem;
+    }
+    .top-control-label,
+    .top-status-label {
+      color: #64748b;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      line-height: 1.6rem;
+      text-transform: uppercase;
+    }
+    .top-control-items,
+    .top-status-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .top-status-tile { padding: 0.18rem 0.45rem; }
+    .top-status-tile:hover:not(:disabled),
+    .matrix-cell:hover:not(:disabled) {
+      border-color: #3b82f6;
+      color: #cbd5e1;
+    }
+    .top-status-tile.up,
+    .matrix-cell.up,
+    .action-btn.up {
+      background: #052e16;
+      border-color: #16a34a;
+      color: #bbf7d0;
+    }
+    .top-status-tile.error,
+    .matrix-cell.error,
+    .action-btn.error {
+      background: #3f1111;
+      border-color: #dc2626;
+      color: #fecaca;
+    }
+    .top-status-tile:disabled,
+    .matrix-cell:disabled,
+    .action-btn:disabled {
+      color: #475569;
+      cursor: wait;
+    }
+    .card {
+      background: #1e2230;
+      border: 1px solid #2d3348;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      position: relative;
+      scroll-margin-top: 1rem;
+    }
+    .card:has(.card-head.has-intent .card-title:hover),
+    .card:has(.card-head.has-intent .card-desc:hover) {
+      z-index: 50;
+    }
+    .card-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.5rem;
+      align-items: start;
+      margin-bottom: 0.25rem;
+    }
+    .card-head {
+      position: relative;
+      min-width: 0;
+    }
+    .card-head.has-intent .card-title,
+    .card-head.has-intent .card-desc {
+      cursor: help;
+    }
+    .intent-tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      top: calc(100% + 0.15rem);
+      left: 0;
+      right: 0;
+      z-index: 60;
+      background: #0b1220;
+      border: 1px solid #3b82f6;
+      border-radius: 6px;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.74rem;
+      line-height: 1.45;
+      color: #cbd5e1;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      transition: opacity 0.15s ease, visibility 0.15s ease;
+      transition-delay: var(--hover-delay);
+    }
+    .card-head.has-intent:has(.card-title:hover) .intent-tooltip,
+    .card-head.has-intent:has(.card-desc:hover) .intent-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+    .card-head.has-intent:not(:has(.card-title:hover)):not(:has(.card-desc:hover)) .intent-tooltip {
+      transition-delay: 0s;
+    }
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.3rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-icons {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: var(--card-icon-gap);
+      align-items: center;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+    .card-icon {
+      color: #64748b;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex: 0 0 var(--card-icon-size);
+      width: var(--card-icon-size);
+      height: var(--card-icon-size);
+      border-radius: 4px;
+      isolation: isolate;
+    }
+    .card-icon:hover {
+      color: #93c5fd;
+      background: #111827;
+      z-index: 3;
+    }
+    .card-icon.disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+    .card-icon.disabled:hover {
+      color: inherit;
+      background: transparent;
+    }
+    .svg-icon {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .icon-tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      top: calc(100% + 0.2rem);
+      right: 0;
+      white-space: nowrap;
+      max-width: min(16rem, 70vw);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      z-index: 70;
+      background: #0b1220;
+      border: 1px solid #3b82f6;
+      border-radius: 4px;
+      padding: 0.25rem 0.45rem;
+      font-size: 0.7rem;
+      color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      transition: opacity 0.15s ease, visibility 0.15s ease;
+      transition-delay: var(--hover-delay);
+    }
+    .card-icon:hover .icon-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+    .card-icon:not(:hover) .icon-tooltip {
+      transition-delay: 0s;
+    }
+    .card-icon.icon-tip-left .icon-tooltip {
+      left: 0;
+      right: auto;
+    }
+    .card-desc {
+      font-size: 0.8rem;
+      color: #475569;
+    }
+    .card-info {
+      /* groups the info lines (last updated + github/gitlab + local dir) as one consistent block */
+      margin-bottom: 0.25rem;
+    }
+    .links { list-style: none; }
+    .links li { margin-bottom: 0.45rem; }
+    .links a {
+      color: #60a5fa;
+      text-decoration: none;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    .links a:hover { color: #93c5fd; text-decoration: underline; }
+    .links a.ide { color: #34d399; }
+    .links a.ide:hover { color: #6ee7b7; }
+    .link-status {
+      font-size: 0.68rem;
+      line-height: 1;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      border-radius: 999px;
+      padding: 0.1rem 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex: none;
+    }
+    .link-desc {
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .card-intents {
+      margin-top: 0.85rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #2d3348;
+    }
+    .card-intent + .card-intent {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #252a38;
+    }
+    .card-intent-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.03em;
+    }
+    .card-intent-author {
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .card-intent-ts {
+      color: #475569;
+      flex: none;
+      font-variant-numeric: tabular-nums;
+    }
+    .card-intent-content {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+    .card-meta {
+      margin-bottom: 0;
+    }
+    .card-meta-item {
+      font-size: 0.68rem;
+      color: #64748b;
+      margin-bottom: 0.1rem;
+    }
+    .meta-link {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+    .meta-link:hover {
+      color: #93c5fd;
+    }
+    .meta-text {
+      color: #64748b;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.65rem;
+      margin-bottom: 0.65rem;
+      align-items: center;
+    }
+    .action-group {
+      display: flex;
+      align-items: center;
+    }
+    .action-btn {
+      background: #111827;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.24rem 0.45rem;
+      font-size: 0.72rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .action-group .action-btn:first-child {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .action-group .action-btn:not(:first-child):not(:last-child) {
+      border-radius: 0;
+      border-left: none;
+    }
+    .action-group .action-btn:last-child {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-left: none;
+    }
+    .action-btn.bounce, .action-btn.down {
+      opacity: 0.4;
+      font-size: 0.65rem;
+    }
+    .action-btn.bounce.active {
+      opacity: 1;
+      color: #fde047;
+    }
+    .action-btn.bounce.active:hover {
+      background: #422006;
+      border-color: #ca8a04;
+    }
+    .action-btn.down.active {
+      opacity: 1;
+      color: #fca5a5;
+    }
+    .action-btn.down.active:hover {
+      background: #450a0a;
+      border-color: #ef4444;
+    }
+    .action-btn:hover:not(:disabled) {
+      color: #dbeafe;
+      border-color: #3b82f6;
+    }
+    .action-status {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      align-self: center;
+    }
+    .action-status.error { color: #f87171; }
+    .empty {
+      color: #475569;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 3rem;
+    }
+    .command-backdrop {
+      background: rgba(15, 17, 23, 0.72);
+      inset: 0;
+      padding: 12vh 1rem 1rem;
+      position: fixed;
+      z-index: 20;
+    }
+    .command-palette {
+      background: #1e2230;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      margin: 0 auto;
+      max-width: 32rem;
+      overflow: hidden;
+    }
+    .command-input {
+      background: #111827;
+      border: 0;
+      border-bottom: 1px solid #334155;
+      color: #e2e8f0;
+      display: block;
+      font: inherit;
+      outline: none;
+      padding: 0.8rem 0.9rem;
+      width: 100%;
+    }
+    .command-results {
+      list-style: none;
+      max-height: 18rem;
+      overflow-y: auto;
+    }
+    .command-result {
+      background: transparent;
+      border: 0;
+      color: #94a3b8;
+      cursor: pointer;
+      display: block;
+      font: inherit;
+      padding: 0.55rem 0.9rem;
+      text-align: left;
+      width: 100%;
+    }
+    .command-result:hover,
+    .command-result.active {
+      background: #0f172a;
+      color: #dbeafe;
+    }
+    .command-empty {
+      color: #64748b;
+      font-size: 0.85rem;
+      padding: 0.75rem 0.9rem;
+    }
+    .newproj-backdrop {
+      align-items: flex-start;
+      display: flex;
+      justify-content: center;
+      padding: 8vh 1rem 1rem;
+    }
+    .newproj-panel {
+      max-width: 36rem;
+      width: 100%;
+    }
+    .newproj-header {
+      border-bottom: 1px solid #334155;
+      color: #94a3b8;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 0.65rem 0.9rem;
+      text-transform: uppercase;
+    }
+    .newproj-body {
+      padding: 0.9rem;
+    }
+    .newproj-meta {
+      color: #64748b;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+    }
+    .newproj-meta strong { color: #cbd5e1; }
+    .newproj-field {
+      display: grid;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+    .newproj-field label {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .newproj-input {
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font: inherit;
+      outline: none;
+      padding: 0.65rem 0.75rem;
+      width: 100%;
+    }
+    .newproj-input:focus { border-color: #3b82f6; }
+    .newproj-step-title {
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      margin-bottom: 0.5rem;
+    }
+    .newproj-step-cmd {
+      background: #0b1220;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      color: #93c5fd;
+      font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      margin-bottom: 0.85rem;
+      overflow-x: auto;
+      padding: 0.55rem 0.65rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .newproj-progress {
+      color: #64748b;
+      font-size: 0.72rem;
+      margin-bottom: 0.65rem;
+    }
+    .newproj-hint {
+      color: #475569;
+      font-size: 0.7rem;
+      margin-bottom: 0.75rem;
+    }
+    .newproj-actions {
+      display: grid;
+      gap: 0.45rem;
+      grid-template-columns: 1fr 1fr;
+    }
+    .newproj-btn {
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #cbd5e1;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.95rem;
+      min-height: 2.75rem;
+      padding: 0.55rem 0.75rem;
+    }
+    .newproj-btn:hover:not(:disabled) {
+      border-color: #3b82f6;
+      color: #dbeafe;
+    }
+    .newproj-btn:disabled {
+      cursor: wait;
+      opacity: 0.6;
+    }
+    .newproj-btn.yes {
+      background: #052e16;
+      border-color: #16a34a;
+      color: #bbf7d0;
+    }
+    .newproj-btn.all {
+      grid-column: 1 / -1;
+    }
+    .newproj-btn.primary {
+      background: #1e3a8a;
+      border-color: #3b82f6;
+      color: #dbeafe;
+    }
+    .newproj-log {
+      background: #0b1220;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-family: ui-monospace, monospace;
+      font-size: 0.68rem;
+      line-height: 1.45;
+      max-height: 14rem;
+      overflow-y: auto;
+      padding: 0.55rem 0.65rem;
+      white-space: pre-wrap;
+    }
+    .newproj-error { color: #f87171; font-size: 0.82rem; margin-bottom: 0.65rem; }
+    .refresh-btn {
+      background: none;
+      border: 1px solid #2d3348;
+      color: #475569;
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.8rem;
+      line-height: 1.2;
+      cursor: pointer;
+      margin-left: 0.4rem;
+    }
+    .refresh-btn:first-of-type { margin-left: auto; }
+    .refresh-btn:hover { color: #94a3b8; border-color: #475569; }
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+      gap: 0.3rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .matrix-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) repeat(3, 2.5rem);
+      gap: 0.3rem;
+    }
+    .matrix-name,
+    .matrix-cell {
+      background: #111827;
+      border: 1px solid #2d3348;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .matrix-name {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      overflow: hidden;
+      padding: 0.22rem 0.45rem;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .matrix-name:hover { color: #cbd5e1; border-color: #475569; }
+    .matrix-cell {
+      color: #475569;
+      font-size: 0.62rem;
+      letter-spacing: 0.04em;
+      padding: 0.22rem 0;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .matrix-cell.none {
+      background: none;
+      border-color: transparent;
+      color: #1f2937;
+      cursor: default;
+    }
+    @media (pointer: coarse) {
+      .matrix-row { grid-template-columns: minmax(0, 1fr) repeat(3, 2.8rem); }
+      .matrix-name, .matrix-cell { padding-top: 0.42rem; padding-bottom: 0.42rem; }
+    }
+    @media (max-width: 480px) {
+      body { padding: 0.75rem 0.5rem; }
+      h1 { font-size: 1.1rem; margin-bottom: 0.9rem; }
+      .matrix { gap: 0.22rem; margin-bottom: 0.9rem; }
+      .matrix-row { gap: 0.22rem; }
+      .grid { gap: 0.6rem; }
+      .card { padding: 0.7rem 0.75rem; }
+      .card-info { margin-bottom: 0.2rem; }
+      .card-meta { margin-bottom: 0; }
+      .card-meta-item { margin-bottom: 0.05rem; font-size: 0.65rem; }
+      .links li { margin-bottom: 0.3rem; }
+      .actions { gap: 0.45rem; margin-bottom: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <h1>
+    Janus
+    <button class="refresh-btn" @click="load">↻ refresh</button>
+    <button class="refresh-btn" @click="toggleTopView" :title="topView === 'matrix' ? 'switch to row layout' : 'switch to matrix layout'">
+      {{ topView === 'matrix' ? '☰ rows' : '⊞ matrix' }}
+    </button>
+    <button class="refresh-btn" @click="toggleClickMode" :title="clickMode === 'filter' ? 'project click filters cards; switch to jump-to-card' : 'project click jumps to card; switch to filter'">
+      {{ clickMode === 'filter' ? '⌖ filter' : '⇢ jump' }}
+    </button>
+    <button class="refresh-btn" @click="openNewProject" title="Create new project">+ new</button>
+  </h1>
+  <div class="matrix" v-if="topView === 'matrix' && projects.length">
+    <div class="matrix-row" v-for="p in projects" :key="`m-${p.project}`">
+      <button
+        class="matrix-name"
+        :class="{ active: activeProject === p.project }"
+        type="button"
+        :title="intentTitle(p)"
+        @click="projectClick(p)"
+      >{{ p.project }}</button>
+      <template v-for="kind in ['ops', 'swarm', 'babysit']" :key="kind">
+        <button
+          v-if="hasKind(p, kind)"
+          class="matrix-cell"
+          :class="buttonClass(p, kind)"
+          :disabled="isBusy(p, kind)"
+          type="button"
+          :title="statusTitle(p, kind)"
+          @click="runTopAction(p, kind)"
+        >{{ kindLabels[kind] }}</button>
+        <span v-else class="matrix-cell none">·</span>
+      </template>
+    </div>
+  </div>
+  <nav class="filter-nav" v-if="topView === 'rows' && projects.length > 1" aria-label="Project filters">
+    <div class="top-control-list">
+      <div class="top-control-row">
+        <div class="top-control-label">{{ clickMode }}</div>
+        <div class="top-control-items">
+          <button
+            v-for="p in projects"
+            :key="p.project"
+            class="filter-btn"
+            :class="{ active: activeProject === p.project }"
+            type="button"
+            :title="activeProject === p.project ? 'Click again or press Esc to clear' : 'Filter to this project'"
+            @click="projectClick(p)"
+          >{{ p.project }}</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div
+    v-if="commandOpen"
+    class="command-backdrop"
+    @click.self="closeCommand"
+  >
+    <div class="command-palette" role="dialog" aria-modal="true" aria-label="Project search">
+      <input
+        ref="searchInput"
+        v-model="commandQuery"
+        class="command-input"
+        type="text"
+        placeholder="Search projects"
+        @keydown.down.prevent="moveCommandSelection(1)"
+        @keydown.up.prevent="moveCommandSelection(-1)"
+        @keydown.enter.prevent="chooseCommandSelection"
+        @keydown.esc.stop.prevent="closeCommand"
+      >
+      <ul class="command-results" v-if="commandMatches.length">
+        <li v-for="(p, i) in commandMatches" :key="p.project">
+          <button
+            class="command-result"
+            :class="{ active: i === commandIndex }"
+            type="button"
+            @mouseenter="commandIndex = i"
+            @click="selectProjectFilter(p)"
+          >{{ p.project }}</button>
+        </li>
+      </ul>
+      <div v-else class="command-empty">No matches</div>
+    </div>
+  </div>
+  <div
+    v-if="newProjectOpen"
+    class="command-backdrop newproj-backdrop"
+    @click.self="closeNewProject"
+  >
+    <div class="command-palette newproj-panel" role="dialog" aria-modal="true" aria-label="Create new project">
+      <div class="newproj-header">New project</div>
+      <div class="newproj-body">
+        <template v-if="newProjectPhase === 'form'">
+          <div class="newproj-field">
+            <label for="np-name">Name</label>
+            <input id="np-name" ref="newProjectNameInput" v-model="newProjectForm.name" class="newproj-input" type="text" placeholder="my-project" @keydown.enter.prevent="startNewProjectWizard">
+          </div>
+          <div class="newproj-field">
+            <label for="np-desc">Description</label>
+            <input id="np-desc" v-model="newProjectForm.description" class="newproj-input" type="text" placeholder="One-line summary">
+          </div>
+          <div class="newproj-field">
+            <label for="np-path">Path (optional)</label>
+            <input id="np-path" v-model="newProjectForm.path" class="newproj-input" type="text" placeholder="~/dev/my-project">
+          </div>
+          <div class="newproj-field">
+            <label for="np-gh">GitHub repo name (optional)</label>
+            <input id="np-gh" v-model="newProjectForm.gh_repo_name" class="newproj-input" type="text" placeholder="defaults to project name">
+          </div>
+          <div class="newproj-actions">
+            <button class="newproj-btn primary" type="button" :disabled="newProjectBusy" @click="startNewProjectWizard">Continue</button>
+            <button class="newproj-btn" type="button" @click="closeNewProject">Cancel</button>
+          </div>
+        </template>
+        <template v-else-if="newProjectPhase === 'wizard' && currentWizardStep">
+          <div class="newproj-meta">
+            <div><strong>Project:</strong> {{ newProjectPlan.name }}</div>
+            <div><strong>Path:</strong> {{ newProjectPlan.path }}</div>
+            <div><strong>GitHub:</strong> {{ newProjectPlan.gh_repo_name }}</div>
+          </div>
+          <div class="newproj-progress">Step {{ newProjectStepIndex + 1 }} of {{ newProjectPlan.steps.length }}</div>
+          <div class="newproj-step-title">{{ currentWizardStep.title }}</div>
+          <div class="newproj-step-cmd">run: {{ currentWizardStep.cmd }}</div>
+          <div class="newproj-hint">Tap a button or press Y / N / A / Q</div>
+          <div class="newproj-actions">
+            <button class="newproj-btn yes" type="button" @click="answerWizard('yes')">Yes</button>
+            <button class="newproj-btn" type="button" @click="answerWizard('no')">No</button>
+            <button class="newproj-btn all" type="button" @click="answerWizard('all')">Yes to all remaining</button>
+            <button class="newproj-btn" type="button" @click="answerWizard('quit')">Quit</button>
+          </div>
+        </template>
+        <template v-else-if="newProjectPhase === 'running'">
+          <div class="newproj-meta">Running setup steps…</div>
+          <div class="newproj-log">{{ newProjectLog.join('\n') || 'Starting…' }}</div>
+        </template>
+        <template v-else>
+          <div v-if="newProjectError" class="newproj-error">{{ newProjectError }}</div>
+          <div class="newproj-meta" v-if="newProjectResult">
+            <div><strong>Project:</strong> {{ newProjectResult.name }}</div>
+            <div><strong>Path:</strong> {{ newProjectResult.path }}</div>
+            <div v-if="newProjectResult.github_url"><strong>GitHub:</strong> {{ newProjectResult.github_url }}</div>
+            <div v-if="newProjectResult.reminder">{{ newProjectResult.reminder }}</div>
+          </div>
+          <div class="newproj-log" v-if="newProjectLog.length">{{ newProjectLog.join('\n') }}</div>
+          <div class="newproj-actions">
+            <button class="newproj-btn primary" type="button" @click="closeNewProject">Close</button>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+  <div
+    class="top-status"
+    v-if="topView === 'rows' && (projectsForKind('ops').length || projectsForKind('swarm').length || projectsForKind('babysit').length)"
+  >
+    <div class="top-status-row" v-if="projectsForKind('ops').length">
+      <div class="top-status-label">ops</div>
+      <div class="top-status-list">
+        <button
+          v-for="p in projectsForKind('ops')"
+          :key="`ops-${p.project}`"
+          class="top-status-tile"
+          :class="buttonClass(p, 'ops')"
+          :disabled="isBusy(p, 'ops')"
+          type="button"
+          :title="statusTitle(p, 'ops')"
+          @click="runTopAction(p, 'ops')"
+        >{{ p.project }}</button>
+      </div>
+    </div>
+    <div class="top-status-row" v-if="projectsForKind('swarm').length">
+      <div class="top-status-label">swarm</div>
+      <div class="top-status-list">
+        <button
+          v-for="p in projectsForKind('swarm')"
+          :key="`swarm-${p.project}`"
+          class="top-status-tile"
+          :class="buttonClass(p, 'swarm')"
+          :disabled="isBusy(p, 'swarm')"
+          type="button"
+          :title="statusTitle(p, 'swarm')"
+          @click="runTopAction(p, 'swarm')"
+        >{{ p.project }}</button>
+      </div>
+    </div>
+    <div class="top-status-row" v-if="projectsForKind('babysit').length">
+      <div class="top-status-label">babysit</div>
+      <div class="top-status-list">
+        <button
+          v-for="p in projectsForKind('babysit')"
+          :key="`babysit-${p.project}`"
+          class="top-status-tile"
+          :class="buttonClass(p, 'babysit')"
+          :disabled="isBusy(p, 'babysit')"
+          type="button"
+          :title="statusTitle(p, 'babysit')"
+          @click="runTopAction(p, 'babysit')"
+        >{{ p.project }}</button>
+      </div>
+    </div>
+  </div>
+  <div v-if="projects.length === 0" class="empty">No links yet — drop a JSON file in <code>data/</code></div>
+  <div class="grid">
+    <div class="card" v-for="p in visibleProjects" :key="p.project" :id="projectId(p)">
+      <div class="card-top">
+      <div class="card-head" :class="{ 'has-intent': intentSummary(p) }">
+        <div v-if="intentSummary(p)" class="intent-tooltip">{{ intentSummary(p) }}</div>
+        <div class="card-title">{{ p.project }}</div>
+        <div v-if="p.description" class="card-desc">{{ p.description }}</div>
+      </div>
+      <div class="card-icons">
+        <a v-if="getSpecialLink(p, 'backlog')" :href="getSpecialLink(p, 'backlog').url" target="_blank" class="card-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="6" height="6" rx="1" /><path d="M13 6h8M13 12h8M13 18h8" /><rect x="3" y="13" width="6" height="6" rx="1" /></svg>
+          <span class="icon-tooltip">{{ getSpecialLink(p, 'backlog').label }}</span>
+        </a>
+        <a v-if="p.meta && p.meta.graphify && p.meta.graphify.has_run" :href="'/projects/' + p.project + '/graph'" target="_blank" class="card-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
+          <span class="icon-tooltip">{{ graphifyTitle(p) }}</span>
+        </a>
+        <a v-if="getSpecialLink(p, 'filebrowser')" :href="getSpecialLink(p, 'filebrowser').url" target="_blank" class="card-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z" /></svg>
+          <span class="icon-tooltip">{{ getSpecialLink(p, 'filebrowser').label }}</span>
+        </a>
+        <a v-if="getSpecialLink(p, 'code-server')" :href="getSpecialLink(p, 'code-server').url" target="_blank" class="card-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
+          <span class="icon-tooltip">{{ getSpecialLink(p, 'code-server').label }}</span>
+        </a>
+        <a v-if="showMuxpodLinks && p.muxpod_links && p.muxpod_links.ops" :href="isUp(p, 'ops') ? p.muxpod_links.ops : null" class="card-icon icon-tip-left" :class="{ 'disabled': !isUp(p, 'ops') }">
+          <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" /></svg>
+          <span class="icon-tooltip">MuxPod ops: {{ p.tmux_sessions?.ops }} · server {{ p.muxpod_links?.server }}{{ isUp(p, 'ops') ? '' : ' (offline)' }}</span>
+        </a>
+        <a v-if="showMuxpodLinks && p.muxpod_links && p.muxpod_links.swarm" :href="isUp(p, 'swarm') ? p.muxpod_links.swarm : null" class="card-icon icon-tip-left" :class="{ 'disabled': !isUp(p, 'swarm') }">
+          <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /></svg>
+          <span class="icon-tooltip">MuxPod swarm: {{ p.tmux_sessions?.swarm }} · server {{ p.muxpod_links?.server }}{{ isUp(p, 'swarm') ? '' : ' (offline)' }}</span>
+        </a>
+      </div>
+      </div>
+      <div class="card-info">
+        <div v-if="p.meta && p.meta.last_git_ts" class="card-meta-item" :title="new Date(p.meta.last_git_ts * 1000).toISOString()">
+          last updated {{ formatTs(p.meta.last_git_ts) }}
+        </div>
+        <div class="card-meta" v-if="p.github_url || p.gitlab_url || p.local_path">
+          <div v-for="(item, i) in metaItems(p)" :key="i" class="card-meta-item">
+            <a v-if="item.href" :href="item.href" target="_blank" rel="noopener" class="meta-link">{{ item.label }}</a>
+            <span v-else class="meta-text">{{ item.label }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="actions" v-if="canOps(p) || canSwarm(p)">
+        <div class="action-group" v-if="canOps(p)">
+          <button
+            class="action-btn"
+            :class="buttonClass(p, 'ops')"
+            :disabled="isBusy(p, 'ops')"
+            @click="runAction(p, 'ops', 'up')"
+          >ops up</button>
+          <button
+            class="action-btn bounce"
+            :class="{ active: isUp(p, 'ops') }"
+            :disabled="isBusy(p, 'ops')"
+            @click="runAction(p, 'ops', 'bounce')"
+          >bounce</button>
+          <button
+            class="action-btn down"
+            :class="{ active: isUp(p, 'ops') }"
+            :disabled="isBusy(p, 'ops')"
+            @click="runAction(p, 'ops', 'down')"
+          >down</button>
+        </div>
+        <div class="action-group" v-if="canSwarm(p)">
+          <button
+            class="action-btn"
+            :class="buttonClass(p, 'swarm')"
+            :disabled="isBusy(p, 'swarm')"
+            @click="runAction(p, 'swarm', 'up')"
+          >swarm up</button>
+          <button
+            class="action-btn bounce"
+            :class="{ active: isUp(p, 'swarm') }"
+            :disabled="isBusy(p, 'swarm')"
+            @click="runAction(p, 'swarm', 'bounce')"
+          >bounce</button>
+          <button
+            class="action-btn down"
+            :class="{ active: isUp(p, 'swarm') }"
+            :disabled="isBusy(p, 'swarm')"
+            @click="runAction(p, 'swarm', 'down')"
+          >down</button>
+        </div>
+        <div class="action-group" v-if="canBabysit(p)">
+          <button
+            class="action-btn"
+            :class="buttonClass(p, 'babysit')"
+            :disabled="isBusy(p, 'babysit')"
+            @click="runAction(p, 'babysit', 'start')"
+          >babysit on</button>
+          <button
+            class="action-btn down"
+            :class="{ active: isUp(p, 'babysit') || babysitState(p) === 'stopped' }"
+            :disabled="isBusy(p, 'babysit')"
+            @click="runAction(p, 'babysit', 'stop')"
+          >off</button>
+        </div>
+        <span
+          v-if="actionStatus[p.project]"
+          class="action-status"
+          :class="{ error: actionStatus[p.project].error }"
+        >{{ actionStatus[p.project].text }}</span>
+      </div>
+      <ul class="links">
+        <li v-for="l in p.links ? p.links.filter(l => !isCompressedLink(l)) : []" :key="l.url">
+          <a :href="l.url" :class="l.kind" target="_blank" rel="noopener">
+            {{ l.label }}
+            <span v-if="l.status" class="link-status">{{ l.status }}</span>
+            <span v-if="l.description" class="link-desc">— {{ l.description }}</span>
+          </a>
+        </li>
+      </ul>
+      <div
+        v-if="showFilteredIntents(p)"
+        class="card-intents"
+      >
+        <div
+          v-for="(s, i) in intentSummariesSorted(p)"
+          :key="`${s.source}-${s.generated_at}-${i}`"
+          class="card-intent"
+        >
+          <div class="card-intent-meta">
+            <span class="card-intent-author">{{ summaryAuthorLine(s) }}</span>
+            <span v-if="s.generated_at" class="card-intent-ts" :title="s.generated_at">{{ formatSummaryAt(s.generated_at) }}</span>
+          </div>
+          <div class="card-intent-content">{{ s.content }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const { createApp, computed, nextTick, onBeforeUnmount, onMounted, ref, watch } = Vue;
+
+function rewriteUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') {
+      u.hostname = window.location.hostname;
+    }
+    return u.toString();
+  } catch { return url; }
+}
+
+function isMobileClient() {
+  return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
+createApp({
+  setup() {
+    const projects = ref([]);
+    const topView = ref(localStorage.getItem('janus-top-view') || 'matrix');
+    const clickMode = ref(localStorage.getItem('janus-click-mode') || 'filter');
+    const kindLabels = { ops: 'ops', swarm: 'swm', babysit: 'sit' };
+    const actionStatus = ref({});
+    const status = ref({});
+    const activeProject = ref('');
+    const commandOpen = ref(false);
+    const commandQuery = ref('');
+    const commandIndex = ref(0);
+    const searchInput = ref(null);
+    const newProjectOpen = ref(false);
+    const newProjectPhase = ref('form');
+    const newProjectBusy = ref(false);
+    const newProjectForm = ref({ name: '', description: '', path: '', gh_repo_name: '' });
+    const newProjectPlan = ref({ name: '', path: '', gh_repo_name: '', steps: [] });
+    const newProjectStepIndex = ref(0);
+    const newProjectDecisions = ref({});
+    const newProjectLog = ref([]);
+    const newProjectError = ref('');
+    const newProjectResult = ref(null);
+    const newProjectNameInput = ref(null);
+    const showMuxpodLinks = ref(isMobileClient());
+    const visibleProjects = computed(() => {
+      if (!activeProject.value) return projects.value;
+      return projects.value.filter((p) => p.project === activeProject.value);
+    });
+    const currentWizardStep = computed(() => {
+      const steps = newProjectPlan.value.steps || [];
+      return steps[newProjectStepIndex.value] || null;
+    });
+    const commandMatches = computed(() => {
+      const q = commandQuery.value.trim().toLowerCase();
+      const matches = q ? projects.value
+        .map((p, i) => ({ p, name: p.project.toLowerCase(), i }))
+        .filter((item) => item.name.includes(q))
+        .sort((a, b) => {
+          const ap = a.name.startsWith(q) ? 0 : 1;
+          const bp = b.name.startsWith(q) ? 0 : 1;
+          return ap - bp || a.name.indexOf(q) - b.name.indexOf(q) || a.i - b.i;
+        })
+        .map((item) => item.p) : projects.value;
+      return matches.slice(0, 12);
+    });
+    const LINKS_CACHE_KEY = 'janus-links-v2';
+    function applyProjects(data) {
+      for (const p of data)
+        for (const l of p.links ?? [])
+          if (l.url) l.url = rewriteUrl(l.url);
+      projects.value = data;
+      if (activeProject.value && !data.some((p) => p.project === activeProject.value)) {
+        activeProject.value = '';
+      }
+    }
+    function loadCachedProjects() {
+      try {
+        const raw = localStorage.getItem(LINKS_CACHE_KEY);
+        if (!raw) return false;
+        applyProjects(JSON.parse(raw));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    async function load() {
+      loadCachedProjects();
+      const [linksRes, statusRes] = await Promise.all([
+        fetch('/api/links'),
+        fetch('/api/status'),
+      ]);
+      const data = await linksRes.json();
+      applyProjects(data);
+      try {
+        localStorage.setItem(LINKS_CACHE_KEY, JSON.stringify(data));
+      } catch {}
+      if (statusRes.ok) {
+        status.value = await statusRes.json();
+      } else {
+        refreshStatus();
+      }
+    }
+    async function refreshStatus() {
+      const r = await fetch('/api/status');
+      status.value = await r.json();
+    }
+    let muxpodMq;
+    function updateMuxpodVisibility() {
+      showMuxpodLinks.value = isMobileClient();
+    }
+    onMounted(() => {
+      updateMuxpodVisibility();
+      muxpodMq = window.matchMedia('(hover: none) and (pointer: coarse)');
+      if (muxpodMq.addEventListener) muxpodMq.addEventListener('change', updateMuxpodVisibility);
+      else muxpodMq.addListener(updateMuxpodVisibility);
+      load();
+      setInterval(refreshStatus, 10000);
+      window.addEventListener('keydown', handleGlobalKeydown);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          load();
+          refreshStatus();
+        }
+      });
+    });
+    onBeforeUnmount(() => {
+      window.removeEventListener('keydown', handleGlobalKeydown);
+      if (muxpodMq) {
+        if (muxpodMq.removeEventListener) muxpodMq.removeEventListener('change', updateMuxpodVisibility);
+        else muxpodMq.removeListener(updateMuxpodVisibility);
+      }
+    });
+    watch(commandMatches, () => {
+      commandIndex.value = Math.min(commandIndex.value, Math.max(commandMatches.value.length - 1, 0));
+    });
+    function metaItems(p) {
+      const items = [];
+      if (p.github_url) items.push({ label: 'github', href: p.github_url });
+      if (p.gitlab_url) items.push({ label: 'gitlab', href: p.gitlab_url });
+      if (p.local_path) items.push({ label: p.local_path });
+      // commented out for now: don't display ops.yaml / swarm yaml in meta tiles
+      // if (p.tmuxp_ops) {
+      //   items.push({ label: p.tmuxp_ops, href: p.config_links?.tmuxp_ops });
+      // }
+      // if (p.tmuxp_swarm) {
+      //   items.push({ label: p.tmuxp_swarm, href: p.config_links?.tmuxp_swarm });
+      // }
+      return items;
+    }
+    function formatTs(ts) {
+      if (!ts) return '';
+      const d = new Date(ts * 1000);
+      const diff = Date.now() - d.getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      const days = Math.floor(hrs / 24);
+      if (days < 7) return days + 'd ago';
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+    function graphifyTitle(p) {
+      const g = p.meta.graphify;
+      const parts = ['graphify: knowledge graph (click to view)'];
+      if (g.nodes != null && g.edges != null) parts.push(`${g.nodes} nodes, ${g.edges} edges`);
+      if (g.last_run) parts.push(`last run ${new Date(g.last_run).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`);
+      return parts.join(' — ');
+    }
+    function getSpecialLink(p, key) {
+      if (!p.links) return null;
+      return p.links.find(l => {
+        const label = (l.label || '').toLowerCase();
+        if (key === 'filebrowser') return label === 'filebrowser';
+        if (key === 'code-server') return label === 'code-server';
+        if (key === 'backlog') return label === 'backlog' || label === 'backlog browser';
+        return false;
+      });
+    }
+    function isCompressedLink(l) {
+      const label = (l.label || '').toLowerCase();
+      return label === 'filebrowser' || label === 'code-server' || label === 'backlog' || label === 'backlog browser';
+    }
+    function intentSummary(p) {
+      const summaries = p.meta?.summaries;
+      if (!summaries?.length) return '';
+      const hit = summaries.find((s) => s.kind === 'high_level_intent');
+      return (hit || summaries[0])?.content || '';
+    }
+    function intentSummariesSorted(p) {
+      const summaries = p.meta?.summaries;
+      if (!summaries?.length) return [];
+      return [...summaries].sort((a, b) => {
+        const ta = a.generated_at ? Date.parse(a.generated_at) : 0;
+        const tb = b.generated_at ? Date.parse(b.generated_at) : 0;
+        return tb - ta;
+      });
+    }
+    function showFilteredIntents(p) {
+      return clickMode.value === 'filter'
+        && activeProject.value === p.project
+        && intentSummariesSorted(p).length > 0;
+    }
+    function summaryAuthorLine(s) {
+      const parts = [];
+      if (s.source) parts.push(s.source);
+      if (s.model && s.model !== s.source) parts.push(s.model);
+      if (s.kind && s.kind !== 'high_level_intent') parts.push(s.kind);
+      return parts.join(' · ') || 'unknown';
+    }
+    function formatSummaryAt(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleString(undefined, {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      });
+    }
+    function intentTitle(p) {
+      const intent = intentSummary(p);
+      return intent || p.project;
+    }
+    function projectId(p) {
+      return `project-${String(p.project).replace(/[^a-zA-Z0-9_-]+/g, '-')}`;
+    }
+    function toggleProjectFilter(p) {
+      activeProject.value = activeProject.value === p.project ? '' : p.project;
+    }
+    function selectProjectFilter(p) {
+      toggleProjectFilter(p);
+      closeCommand();
+    }
+    function jumpToProject(p) {
+      activeProject.value = '';
+      nextTick(() => {
+        document.getElementById(projectId(p))?.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+    function isTypingTarget(el) {
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+    }
+    function resetNewProject() {
+      newProjectPhase.value = 'form';
+      newProjectBusy.value = false;
+      newProjectForm.value = { name: '', description: '', path: '', gh_repo_name: '' };
+      newProjectPlan.value = { name: '', path: '', gh_repo_name: '', steps: [] };
+      newProjectStepIndex.value = 0;
+      newProjectDecisions.value = {};
+      newProjectLog.value = [];
+      newProjectError.value = '';
+      newProjectResult.value = null;
+    }
+    function openNewProject() {
+      resetNewProject();
+      newProjectOpen.value = true;
+      commandOpen.value = false;
+      nextTick(() => newProjectNameInput.value?.focus());
+    }
+    function closeNewProject() {
+      newProjectOpen.value = false;
+      if (newProjectResult.value) load();
+    }
+    async function startNewProjectWizard() {
+      const name = newProjectForm.value.name.trim();
+      if (!name) {
+        newProjectError.value = 'Name is required';
+        return;
+      }
+      newProjectBusy.value = true;
+      newProjectError.value = '';
+      try {
+        const params = new URLSearchParams({ name });
+        if (newProjectForm.value.description) params.set('description', newProjectForm.value.description);
+        if (newProjectForm.value.path) params.set('path', newProjectForm.value.path);
+        if (newProjectForm.value.gh_repo_name) params.set('gh_repo_name', newProjectForm.value.gh_repo_name);
+        const r = await fetch(`/api/new-project/schema?${params}`);
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'Failed to load setup plan');
+        newProjectPlan.value = data;
+        newProjectDecisions.value = Object.fromEntries(
+          (data.steps || []).map((s) => [s.key, !!s.default])
+        );
+        newProjectStepIndex.value = 0;
+        newProjectPhase.value = 'wizard';
+      } catch (e) {
+        newProjectError.value = e.message || 'Failed to start wizard';
+        newProjectPhase.value = 'done';
+      } finally {
+        newProjectBusy.value = false;
+      }
+    }
+    function answerWizard(kind) {
+      if (newProjectPhase.value !== 'wizard' || !currentWizardStep.value) return;
+      if (kind === 'quit') {
+        closeNewProject();
+        return;
+      }
+      const steps = newProjectPlan.value.steps || [];
+      if (kind === 'all') {
+        for (let i = newProjectStepIndex.value; i < steps.length; i++) {
+          newProjectDecisions.value[steps[i].key] = true;
+        }
+        runNewProject();
+        return;
+      }
+      newProjectDecisions.value[currentWizardStep.value.key] = kind === 'yes';
+      if (newProjectStepIndex.value + 1 >= steps.length) {
+        runNewProject();
+      } else {
+        newProjectStepIndex.value += 1;
+      }
+    }
+    async function runNewProject() {
+      newProjectPhase.value = 'running';
+      newProjectLog.value = [];
+      newProjectError.value = '';
+      try {
+        const body = {
+          name: newProjectForm.value.name.trim(),
+          description: newProjectForm.value.description.trim(),
+          path: newProjectForm.value.path.trim() || null,
+          gh_repo_name: newProjectForm.value.gh_repo_name.trim() || null,
+          steps: { ...newProjectDecisions.value },
+        };
+        const r = await fetch('/api/new-project', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          const detail = data.detail;
+          if (detail && typeof detail === 'object') {
+            newProjectLog.value = detail.log || [];
+            throw new Error(detail.error || 'Setup failed');
+          }
+          throw new Error(detail || 'Setup failed');
+        }
+        newProjectResult.value = data;
+        newProjectLog.value = data.log || [];
+        newProjectPhase.value = 'done';
+        load();
+      } catch (e) {
+        newProjectError.value = e.message || 'Setup failed';
+        newProjectPhase.value = 'done';
+      }
+    }
+    function handleGlobalKeydown(e) {
+      if (newProjectOpen.value) {
+        if (newProjectPhase.value === 'wizard' && !isTypingTarget(e.target)) {
+          const k = e.key.toLowerCase();
+          if (k === 'y' || k === 'enter') {
+            e.preventDefault();
+            answerWizard('yes');
+            return;
+          }
+          if (k === 'n') {
+            e.preventDefault();
+            answerWizard('no');
+            return;
+          }
+          if (k === 'a') {
+            e.preventDefault();
+            answerWizard('all');
+            return;
+          }
+          if (k === 'q' || e.key === 'Escape') {
+            e.preventDefault();
+            if (k === 'q') answerWizard('quit');
+            else closeNewProject();
+            return;
+          }
+        }
+        if (e.key === 'Escape' && newProjectPhase.value !== 'running') {
+          e.preventDefault();
+          closeNewProject();
+          return;
+        }
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCommand();
+        return;
+      }
+      if (e.key === 'Escape' && clickMode.value === 'filter' && activeProject.value && !commandOpen.value) {
+        activeProject.value = '';
+      }
+    }
+    function openCommand() {
+      commandOpen.value = true;
+      commandQuery.value = '';
+      commandIndex.value = 0;
+      nextTick(() => searchInput.value?.focus());
+    }
+    function closeCommand() {
+      commandOpen.value = false;
+    }
+    function moveCommandSelection(delta) {
+      const count = commandMatches.value.length;
+      if (!count) return;
+      commandIndex.value = (commandIndex.value + delta + count) % count;
+    }
+    function chooseCommandSelection() {
+      const p = commandMatches.value[commandIndex.value];
+      if (p) selectProjectFilter(p);
+    }
+    function canOps(p) {
+      return p.local_path && p.tmuxp_ops;
+    }
+    function canSwarm(p) {
+      return p.local_path && p.tmuxp_swarm;
+    }
+    function projectsForKind(kind) {
+      if (kind === 'babysit') return projects.value.filter(canBabysit);
+      const canKind = kind === 'ops' ? canOps : canSwarm;
+      return projects.value.filter(canKind);
+    }
+    function canBabysit(p) {
+      return p.local_path && p.tmuxp_swarm && !!status.value[p.project]?.babysit?.configured;
+    }
+    function hasKind(p, kind) {
+      return kind === 'ops' ? canOps(p) : kind === 'swarm' ? canSwarm(p) : canBabysit(p);
+    }
+    function toggleTopView() {
+      topView.value = topView.value === 'matrix' ? 'rows' : 'matrix';
+      localStorage.setItem('janus-top-view', topView.value);
+    }
+    function toggleClickMode() {
+      clickMode.value = clickMode.value === 'filter' ? 'jump' : 'filter';
+      localStorage.setItem('janus-click-mode', clickMode.value);
+    }
+    function projectClick(p) {
+      if (clickMode.value === 'jump') jumpToProject(p);
+      else toggleProjectFilter(p);
+    }
+    function isUp(p, kind) {
+      return !!status.value[p.project]?.[kind]?.up;
+    }
+    function babysitState(p) {
+      return status.value[p.project]?.babysit?.state || '';
+    }
+    function isBusy(p, kind) {
+      return actionStatus.value[p.project]?.busy === kind;
+    }
+    function buttonClass(p, kind) {
+      const s = status.value[p.project]?.[kind];
+      if (s?.error || s?.state === 'errored') return 'error';
+      if (s?.up) return 'up';
+      return '';
+    }
+    function statusTitle(p, kind) {
+      const s = status.value[p.project]?.[kind];
+      if (s?.error) return `${p.project}: ${s.error}`;
+      if (s?.up) return kind === 'babysit'
+        ? `${p.project}: ${kind} up`
+        : `${p.project}: stop ${kind}`;
+      return `${p.project}: start ${kind}`;
+    }
+    function runTopAction(p, kind) {
+      if (kind === 'babysit' && isUp(p, kind)) {
+        jumpToProject(p);
+        return;
+      }
+      const action = kind === 'babysit' ? 'start' : isUp(p, kind) ? 'down' : 'up';
+      runAction(p, kind, action);
+    }
+    async function runAction(p, kind, action) {
+      const msgMap = { up: 'starting', down: 'stopping', bounce: 'bouncing', start: 'starting', stop: 'stopping' };
+      const msg = msgMap[action] || 'acting';
+      actionStatus.value[p.project] = { busy: kind, text: `${kind} ${msg}` };
+      try {
+        const r = await fetch(`/api/projects/${encodeURIComponent(p.project)}/${kind}/${action}`, {
+          method: 'POST',
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || `${kind} ${action} failed`);
+        const doneMap = { up: 'started', down: 'stopped', bounce: 'bounced', start: 'started', stop: 'stopped' };
+        const doneMsg = doneMap[action] || 'done';
+        actionStatus.value[p.project] = { text: `${kind} ${doneMsg}` };
+        refreshStatus();
+        setTimeout(refreshStatus, 1500);
+      } catch (e) {
+        actionStatus.value[p.project] = {
+          text: e.message || `${kind} ${action} failed`,
+          error: true,
+        };
+      }
+    }
+    return {
+      projects,
+      topView,
+      kindLabels,
+      toggleTopView,
+      clickMode,
+      toggleClickMode,
+      projectClick,
+      hasKind,
+      visibleProjects,
+      actionStatus,
+      status,
+      activeProject,
+      commandOpen,
+      commandQuery,
+      commandIndex,
+      commandMatches,
+      searchInput,
+       load,
+      metaItems,
+      formatTs,
+      graphifyTitle,
+      getSpecialLink,
+      isCompressedLink,
+      intentSummary,
+      intentSummariesSorted,
+      showFilteredIntents,
+      summaryAuthorLine,
+      formatSummaryAt,
+      intentTitle,
+      projectId,
+      toggleProjectFilter,
+      selectProjectFilter,
+      closeCommand,
+      moveCommandSelection,
+      chooseCommandSelection,
+      canOps,
+      canSwarm,
+      projectsForKind,
+      canBabysit,
+      isUp,
+      babysitState,
+      isBusy,
+      buttonClass,
+      statusTitle,
+      runTopAction,
+      runAction,
+      newProjectOpen,
+      newProjectPhase,
+      newProjectBusy,
+      newProjectForm,
+      newProjectPlan,
+      newProjectStepIndex,
+      newProjectLog,
+      newProjectError,
+      newProjectResult,
+      newProjectNameInput,
+      currentWizardStep,
+      openNewProject,
+      closeNewProject,
+      startNewProjectWizard,
+      answerWizard,
+      showMuxpodLinks,
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

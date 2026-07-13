@@ -1,0 +1,12 @@
+{
+  "project": "janus",
+  "muxpod_server_id": "my-dev-box",
+  "local_path": "~/dev/janus",
+  "description": "Local dev homepage and ops dashboard",
+  "links": [
+    {
+      "label": "Dashboard",
+      "url": "http://localhost:7890"
+    }
+  ]
+}

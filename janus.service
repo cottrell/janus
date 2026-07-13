@@ -1,0 +1,21 @@
+[Unit]
+Description=ops-janus
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# Adjust WorkingDirectory / tmuxp path for your machine (do not commit personal paths).
+WorkingDirectory=%h/dev/janus
+
+# Full login shell so you get your normal PATH, uv, tmuxp, etc.
+ExecStart=/bin/bash -l -c 'tmuxp load -d ops.yaml'
+
+ExecStop=/usr/bin/tmux kill-session -t ops-janus
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

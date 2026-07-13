@@ -1,0 +1,17 @@
+[project]
+name = "janus"
+version = "0.1.0"
+description = "Local dev homepage and ops dashboard for coordinating projects, tmuxp sessions, and service links."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = []
+
+[tool.uv]
+package = false
