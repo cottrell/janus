@@ -4,12 +4,12 @@ title: Consider multi-server / remote-host Janus setups
 status: To Do
 assignee: []
 created_date: '2026-07-12 13:51'
+updated_date: '2026-07-14 12:33'
 labels:
   - consider
   - architecture
   - muxpod
-dependencies:
-  - TASK-3
+dependencies: []
 references:
   - server.py
   - data/janus.json

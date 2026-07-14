@@ -1,10 +1,10 @@
 ---
 id: TASK-13
 title: Speed up initial dashboard load of data/ projects
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-07-12 10:23'
-updated_date: '2026-07-12 13:21'
+updated_date: '2026-07-14 12:32'
 labels:
   - performance
   - frontend

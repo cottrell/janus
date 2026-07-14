@@ -236,12 +236,12 @@ def _get_graphify_info(local_path):
 #   "meta": {
 #     "summaries": [
 #       {
-#         "source": "claude",                    # or "grok", "graphify", "haiku", "fable", etc.
-#         "model": "claude-3-5-sonnet-20241022", # optional finer grain
-#         "kind": "high_level_description",
+#         "source": "claude",                    # or "agy", "codex", "grok", "graphify", …
+#         "model": "haiku",                      # optional finer grain
+#         "kind": "high_level_intent",           # orchestrator-facing (skill: enrich-meta)
 #         "content": "This project orchestrates ...",
 #         "generated_at": "2026-07-09T12:00:00Z",
-#         "based_on": ["README.md", "CLAUDE.md", "graphify god nodes"]
+#         "based_on": ["description", "README.md"]
 #       },
 #       {
 #         "source": "graphify",

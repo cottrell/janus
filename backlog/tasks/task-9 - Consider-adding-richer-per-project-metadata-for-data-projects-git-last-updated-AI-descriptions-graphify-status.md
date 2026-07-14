@@ -7,7 +7,7 @@ status: Done
 assignee:
   - grok
 created_date: '2026-07-09 05:59'
-updated_date: '2026-07-11 10:57'
+updated_date: '2026-07-14 12:34'
 labels:
   - metadata
   - projects
@@ -170,6 +170,8 @@ Added .card-updated CSS, formatTs() helper (and exposed in return), inline templ
 Live values from server now visible on dashboard cards.
 
 2026-07-11: Verified implementation complete — all 7 ACs checked, server.py helpers live, UI shows last_git_ts, enrich-meta skill exists, make validate OK on 21 projects. Marked Done.
+
+2026-07-14: Follow-up — Claude Haiku added to skills/enrich-meta + mk/enrich_meta.py (round-robin with agy/codex/grok). Skill docs cleaned (skip via has_intent, UI already shows intent). See TASK for haiku slice if present / commit message.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

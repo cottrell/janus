@@ -35,10 +35,9 @@ Add or extend `meta` on each `data/<project>.json`:
 
 ## Skip conditions
 
-Use `server.has_any_ai_summary(meta)` logic before calling an LLM:
+Skip calling an LLM if `meta.summaries` already has any entry with `kind: "high_level_intent"` (see `has_intent` in `mk/enrich_meta.py`).
 
-- Skip if `meta.summaries` already has any entry with `kind: "high_level_intent"`.
-- Optionally skip if only stale intent exists and `last_git_ts` is old (orchestrator refresh policy — not implemented yet).
+Do **not** use `server.has_any_ai_summary()` for this skip — that is broader (any summary / graphify) and would block first intent fill when only graphify exists.
 
 Do **not** treat live `graphify` alone as sufficient intent text.
 
@@ -55,6 +54,7 @@ Do **not** treat live `graphify` alone as sufficient intent text.
 | agy | `agy --model "Gemini 3.5 Flash (Low)" --dangerously-skip-permissions --print "PROMPT"` | must put `--model` **before** `--print` |
 | codex | `codex exec -m gpt-5.4-mini --dangerously-bypass-approvals-and-sandbox "PROMPT"` | |
 | grok | `grok -m grok-composer-2.5-fast --always-approve -p "PROMPT"` | use `grok-composer-2.5-fast` to save quota; **run from project cwd** or paths may fail Read tool |
+| claude | `claude --model haiku --dangerously-skip-permissions -p "PROMPT"` | alias `haiku`; **run from project cwd** or `--add-dir PATH` |
 
 **Caveat:** `ide-tools` shares `local_path` with janus — agents may conflate them; prefer `description` field for that entry.
 
@@ -66,23 +66,22 @@ Write 1-2 sentences (max 50 words total) describing high-level INTENT for an orc
 Focus on purpose and activity, not file structure. Output only the summary text, no quotes or preamble.
 ```
 
-For agy, `cd` to project dir or `--add-dir PATH` so README is readable.
+All listed agents should run with cwd = project `local_path` (or `--add-dir PATH`).
 
 ## Parallel batching
 
-Split `data/*.json` across three agents (~7 projects each). Run batches in parallel. After all complete:
+Round-robin `data/*.json` across the four agents. Optional batch runner: `uv run python mk/enrich_meta.py` (writes registry JSON). Or agents edit JSON by hand via this skill. After:
 
 ```sh
 make validate
-python3 -c "import server; print(sum(1 for p in server.get_links() if (p.get('meta') or {}).get('summaries')))"
 ```
 
-## Future UI
+## UI
 
-Summaries are not displayed yet. Intended for orchestrator consumption; later may surface as card hover tooltip (`meta.summaries[0].content` or preferred source).
+Dashboard cards surface `high_level_intent` content (hover / meta). Still useful for orchestrators reading registry JSON directly.
 
 ## Anti-patterns
 
 - Do not use graphify god-nodes as intent summary.
-- Do not regenerate all projects on every run.
-- Do not add scripts that hide the schema — agents edit JSON directly.
+- Do not regenerate all projects on every run (skip when intent already present).
+- Prefer appending a new `summaries[]` entry over overwriting other authors.

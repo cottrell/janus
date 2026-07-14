@@ -13,10 +13,12 @@ from paths import get_data_dir
 
 DATA = get_data_dir()
 
+# (source, model label for meta.summaries, argv prefix before the prompt)
 AGENTS = [
-    ("agy", ["agy", "--model", "Gemini 3.5 Flash (Low)", "--dangerously-skip-permissions", "--print"]),
-    ("codex", ["codex", "exec", "-m", "gpt-5.4-mini", "--dangerously-bypass-approvals-and-sandbox"]),
-    ("grok", ["grok", "-m", "grok-composer-2.5-fast", "--always-approve", "-p"]),
+    ("agy", "Gemini 3.5 Flash (Low)", ["agy", "--model", "Gemini 3.5 Flash (Low)", "--dangerously-skip-permissions", "--print"]),
+    ("codex", "gpt-5.4-mini", ["codex", "exec", "-m", "gpt-5.4-mini", "--dangerously-bypass-approvals-and-sandbox"]),
+    ("grok", "grok-composer-2.5-fast", ["grok", "-m", "grok-composer-2.5-fast", "--always-approve", "-p"]),
+    ("claude", "haiku", ["claude", "--model", "haiku", "--dangerously-skip-permissions", "-p"]),
 ]
 
 PROMPT = """Read the project at {path} (start with README.md; also CLAUDE.md or AGENTS.md if no README).
@@ -37,15 +39,14 @@ def has_intent(meta):
 def resolve_path(local_path):
     if not local_path:
         return None
-    p = Path(local_path.replace("~", str(Path.home())))
+    p = Path(local_path).expanduser()
     return p if p.is_dir() else None
 
 
 def run_agent(agent_name, cmd_prefix, path, desc):
     prompt = PROMPT.format(path=path, desc=desc or "(none)")
     cmd = [*cmd_prefix, prompt]
-    cwd = path if agent_name in ("agy", "codex") else ROOT
-    res = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, timeout=180)
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=path, timeout=180)
     out = (res.stdout or "") + (res.stderr or "")
     if res.returncode != 0:
         raise RuntimeError(f"exit {res.returncode}: {out[-500:]}")
@@ -107,16 +108,11 @@ def main():
     files = sorted(DATA.glob("*.json"))
     jobs = []
     for i, f in enumerate(files):
-        agent_name, cmd_prefix = AGENTS[i % len(AGENTS)]  # round-robin across mini agents
-        model = {
-            "agy": "Gemini 3.5 Flash (Low)",
-            "codex": "gpt-5.4-mini",
-            "grok": "grok-composer-2.5-fast",
-        }[agent_name]
+        agent_name, model, cmd_prefix = AGENTS[i % len(AGENTS)]
         jobs.append((f, agent_name, cmd_prefix, model))
 
     results = {}
-    with ThreadPoolExecutor(max_workers=7) as pool:
+    with ThreadPoolExecutor(max_workers=min(8, max(1, len(files)))) as pool:
         futs = {
             pool.submit(enrich_one, f, a, c, m): f.stem
             for f, a, c, m in jobs
