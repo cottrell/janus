@@ -743,4 +743,11 @@ def index():
 
 
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="::", port=7890, reload=True)
+    uvicorn.run(
+        "server:app",
+        host="::",
+        port=7890,
+        reload=True,
+        reload_excludes=[".venv/*", "backlog/*", "graphify-out/*"],
+    )
+
