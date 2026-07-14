@@ -6,17 +6,18 @@ JSON has `"ide_links": true`. The core dashboard works without any of this.
 ## Network model
 
 Services under `ide/` (code-server, filebrowser, ttyd) run **without application
-auth** by default. That is only appropriate on a **private overlay / VPN**
-(Yggdrasil, Tailscale, WireGuard, similar) plus a host firewall that restricts
-who can open the ports — **not** on the public internet.
+auth** by default. That is only appropriate when the host is **not** reachable
+by untrusted clients — typically a private mesh/VPN and/or host firewall.
+Examples (interchangeable for this purpose): **Tailscale**, **Yggdrasil**,
+**WireGuard**. Nothing in Janus requires any of them.
 
 Example posture (nftables or equivalent):
-- Default DROP on the overlay interface
+- Default DROP on interfaces that should not be public
 - Established/related connections accepted
-- Only known peer addresses (your devices) whitelisted
+- Only known peer addresses (your devices) allowed
 
-With that model, no auth on the IDE ports is acceptable: only whitelisted peers
-can reach them. **Without** overlay+firewall (or equivalent), enable auth or
+With that model, no auth on the IDE ports is acceptable: only trusted peers can
+reach them. **Without** mesh/VPN and/or firewall (or equivalent), enable auth or
 do not run these services.
 
 ## Per-service notes

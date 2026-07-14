@@ -27,7 +27,7 @@ documentation:
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Add one-tap **tmux hop** links on Janus project cards so you can jump straight into the right tmux session (ops or swarm) without hunting in tmux or MuxPod manually.
 
-**Context:** Janus already knows each project's `tmuxp_ops` / `tmuxp_swarm` configs and can resolve `session_name` from the yaml (see `server.session_name()`). The missing piece is surfacing deep links from the dashboard — especially useful on phone over yggdrasil.
+**Context:** Janus already knows each project's `tmuxp_ops` / `tmuxp_swarm` configs and can resolve `session_name` from the yaml (see `server.session_name()`). The missing piece is surfacing deep links from the dashboard — especially useful on phone over mesh/VPN (e.g. Tailscale or Yggdrasil).
 
 **Likely implementations (pick one or combine):**
 1. **MuxPod deep links** (`muxpod://connect?server=<id>&session=<name>&window=<name>&pane=<index>`) — mobile-first; see TASK-10 for the concrete slice.

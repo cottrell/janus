@@ -5,8 +5,9 @@ ifeq ($(wildcard $(HOME)/dev/janus-data/*.json),)
 else
 export JANUS_DATA_DIR ?= $(HOME)/dev/janus-data
 endif
+# Raise fd limit when the shell allows it (no-op if capped); then start dashboard.
 dev:
-	ulimit -n 65536 && uv run python server.py
+	@bash -c 'ulimit -n 65536 2>/dev/null || true; exec uv run python server.py'
 validate:
 	uv run python mk/validate.py
 ops-up:

@@ -2,7 +2,7 @@
 
 Local dev homepage and ops dashboard: project link cards, optional tmuxp session controls, and optional AI-agent swarm hooks. The **dashboard alone** needs only Python + a registry of JSON files. Swarm / babysit / IDE / MuxPod features are additive and driven by per-project registry fields.
 
-Default bind is all interfaces on port **7890** (see `server.py`). Over yggdrasil/VPN hosts, open `http://<host>:7890`.
+Default bind is all interfaces on port **7890** (see `server.py`). From another device (phone, laptop) use `http://<host>:7890` — LAN, or any private mesh/VPN you already use (e.g. Tailscale, Yggdrasil, WireGuard). Nothing in Janus requires a particular overlay.
 
 ## Running
 
@@ -81,7 +81,7 @@ This repo’s `swarm/janus.yaml` is only a sample grid for developing Janus itse
 
 IDE helpers under `ide/` (code-server, filebrowser, ttyd) are **not required** for the dashboard. Janus only shows icons when a project JSON sets `"ide_links": true` — pure registry config, no special server mode.
 
-Those services currently run **with no application auth**. That is intentional only if the host is already on a **private overlay or VPN** (Yggdrasil, Tailscale, WireGuard, etc.) with a host firewall that limits who can reach the ports. Do **not** expose them on the public internet as-is.
+Those services currently run **with no application auth**. That is intentional only if access is limited by a **private mesh/VPN and/or host firewall** (examples: Tailscale, Yggdrasil, WireGuard — interchangeable for this purpose). Janus does not depend on any of them. Do **not** expose IDE ports on the public internet as-is.
 
 Details and service table: [`ide/SECURITY.md`](ide/SECURITY.md). Install is optional (`bash mk/install-ide-tools.sh`; Debian/apt-oriented).
 
@@ -231,7 +231,7 @@ Drop a JSON file in `data/` named after your project (e.g. `data/myproject.json`
 }
 ```
 
-Always use `localhost` in URLs. The dashboard rewrites the host in the browser using `window.location.hostname`, so links work correctly whether accessed locally or from a phone over yggdrasil.
+Always use `localhost` in URLs. The dashboard rewrites the host in the browser using `window.location.hostname`, so links work when you open the dashboard from localhost or via any remote host name (LAN, Tailscale, Yggdrasil, etc.).
 
 Only `project` is required. `local_path`, `github_url`/`gitlab_url`, `tmuxp_ops`, and `tmuxp_swarm` are optional. `local_path` + urls are shown in the card meta; `tmuxp_*` are used for action buttons (and `mk/*.py`) but not currently shown in the meta row. `ops_up` and `swarm_up` default to `true` when their corresponding config keys are set, but can be explicitly set to `false` to disable. The dashboard re-reads `data/` on every request (no restart needed) and refreshes when you switch back to the tab.
 
@@ -260,7 +260,7 @@ MuxPod has **two separate settings** on each saved SSH connection:
 
 | Field | What it is | Example |
 |-------|------------|---------|
-| **Host / address** | How SSH actually connects | Your host or yggdrasil IPv6, e.g. `200:…:abcd` |
+| **Host / address** | How SSH actually connects | Hostname, Tailscale name, Yggdrasil IPv6, LAN IP, … |
 | **Deep Link ID** | Short nickname for `muxpod://` URLs only | Any string you choose (e.g. `dev-box`) |
 
 The Deep Link ID is **any stable label** you pick in MuxPod — it does not have to be your hostname, IPv6, or SSH host. It is **not** the address you enter for SSH. MuxPod uses this ID only to match `muxpod://connect?server=…` links to the right saved connection.

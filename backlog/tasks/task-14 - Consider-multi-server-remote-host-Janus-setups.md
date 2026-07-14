@@ -28,7 +28,7 @@ Janus currently assumes a single dev machine: the host where `server.py` runs is
 - `local_path` resolves on the Janus host
 - `/api/status` reads local tmux/nudge state on the Janus host
 - `muxpod_server_id` identifies one MuxPod SSH connection (Deep Link ID) for that same machine
-- Dashboard URL rewrite uses `window.location.hostname` (phone reaches Janus over yggdrasil IPv6)
+- Dashboard URL rewrite uses `window.location.hostname` (phone reaches Janus over mesh/VPN (e.g. Tailscale or Yggdrasil))
 
 **Not supported yet:**
 - Projects whose code/tmux sessions live on a different machine than Janus
@@ -39,7 +39,7 @@ Janus currently assumes a single dev machine: the host where `server.py` runs is
 - Per-project `muxpod_server_id` vs global config vs machine registry in `data/janus.json`
 - How status/links would work when `local_path` is remote or absent
 - Whether MuxPod deep links are enough for multi-host hop vs needing per-host Janus instances
-- Relationship to yggdrasil / multiple IPv6 endpoints
+- Relationship to mesh/VPN / multiple host endpoints
 
 **Scope for now:** document the single-host assumption; defer design until a concrete multi-machine need appears.
 <!-- SECTION:DESCRIPTION:END -->

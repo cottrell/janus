@@ -44,12 +44,12 @@ What needs adding (~30-50 lines):
 1. Config for MuxPod server ID — e.g. `MUXPOD_SERVER_ID` env var or field in `data/janus.json`
 2. `server.py`: `_muxpod_link(session_name, window=None, pane=None)` helper; expose `muxpod_links` dict on project dicts in `get_links()` (ops + swarm entries when configured)
 3. `index.html`: card icon(s) for muxpod hop — e.g. terminal icon, tooltip shows session name; link only when session is up (optional polish)
-4. README one-liner on MuxPod setup (Deep Link ID + yggdrasil/SSH access from phone)
+4. README one-liner on MuxPod setup (Deep Link ID + SSH access from phone (LAN or mesh/VPN))
 
 **Prerequisites (user-side, not code):**
 - MuxPod installed on phone (Android/iOS)
 - SSH connection configured in MuxPod with a stable Deep Link ID (e.g. `dev-box`)
-- Phone can reach dev machine (yggdrasil IPv6 or LAN)
+- Phone can reach dev machine (mesh/VPN (e.g. Tailscale/Yggdrasil) or LAN)
 
 **Open decisions:**
 - One muxpod link (swarm preferred?) vs separate ops/swarm icons?

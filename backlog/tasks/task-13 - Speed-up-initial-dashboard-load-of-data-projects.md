@@ -24,7 +24,7 @@ priority: medium
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-The Janus dashboard feels janky on initial load (especially on phone over yggdrasil). The main blocker is `GET /api/links`, called from `index.html` `load()` on mount and tab refocus — the page stays empty until it returns.
+The Janus dashboard feels janky on initial load (especially on phone over mesh/VPN (e.g. Tailscale or Yggdrasil)). The main blocker is `GET /api/links`, called from `index.html` `load()` on mount and tab refocus — the page stays empty until it returns.
 
 **Measured baseline (2026-07-12, 23 projects):** `server.get_links()` ≈ **1.3s** per request (3-run average). `/api/status` was already optimized in TASK-7; this task focuses on links/data enrichment.
 
@@ -48,7 +48,7 @@ Frontend currently waits for the full enriched payload before rendering cards.
 6. **Move work off hot path** — optional background job populates cache file; dashboard reads cache + shows “stale” indicator
 7. **Parallel frontend fetch** — start `/api/status` alongside `/api/links` (small win; status is cheaper now)
 
-**Constraints:** Keep `make validate` passing; minimal deps; phone/yggdrasil latency matters; don't break new-project registration or muxpod links.
+**Constraints:** Keep `make validate` passing; minimal deps; phone/remote latency matters; don't break new-project registration or muxpod links.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
