@@ -19,7 +19,15 @@ from mk.new_project import (
     execute_steps,
     prepare_project,
 )
-from mk.paths import get_data_dir, resolve_swarm_argv
+from mk.paths import (
+    get_data_dir,
+    get_dev_root,
+    get_ide_code_server_url,
+    get_ide_filebrowser_url,
+    get_listen_host,
+    get_listen_port,
+    resolve_swarm_argv,
+)
 
 app = FastAPI()
 DATA_DIR = get_data_dir()
@@ -106,9 +114,8 @@ def _get_session_name(project, kind):
         return None
 
 
-DEV_ROOT = str(Path.home() / "dev")
-IDE_FB  = "http://localhost:9323"
-IDE_CS  = "https://localhost:9321"
+def _dev_root_str() -> str:
+    return str(get_dev_root())
 
 
 def _ide_links(p):
@@ -116,19 +123,23 @@ def _ide_links(p):
     if not local_path:
         return []
     abs_path = str(Path(local_path).expanduser().resolve())
+    dev_root = _dev_root_str()
+    ide_fb = get_ide_filebrowser_url()
+    ide_cs = get_ide_code_server_url()
     links = []
-    if abs_path.startswith(DEV_ROOT + "/") or abs_path == DEV_ROOT:
-        rel = abs_path[len(DEV_ROOT):]
-        links.append({"label": "filebrowser", "url": f"{IDE_FB}/files{rel}", "kind": "ide"})
-    links.append({"label": "code-server", "url": f"{IDE_CS}/?folder={abs_path}", "kind": "ide"})
+    if abs_path.startswith(dev_root + "/") or abs_path == dev_root:
+        rel = abs_path[len(dev_root):]
+        links.append({"label": "filebrowser", "url": f"{ide_fb}/files{rel}", "kind": "ide"})
+    links.append({"label": "code-server", "url": f"{ide_cs}/?folder={abs_path}", "kind": "ide"})
     return links
 
 
 def _filebrowser_link(path):
     abs_path = str(path.resolve())
-    if abs_path.startswith(DEV_ROOT + "/") or abs_path == DEV_ROOT:
-        rel = abs_path[len(DEV_ROOT):]
-        return f"{IDE_FB}/files{rel}"
+    dev_root = _dev_root_str()
+    if abs_path.startswith(dev_root + "/") or abs_path == dev_root:
+        rel = abs_path[len(dev_root):]
+        return f"{get_ide_filebrowser_url()}/files{rel}"
     return None
 
 
@@ -758,8 +769,8 @@ def index():
 if __name__ == "__main__":
     uvicorn.run(
         "server:app",
-        host="::",
-        port=7890,
+        host=get_listen_host(),
+        port=get_listen_port(),
         reload=True,
         reload_excludes=[".venv/*", "backlog/*", "graphify-out/*"],
     )

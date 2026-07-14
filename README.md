@@ -6,7 +6,7 @@
 
 Local dev homepage and ops dashboard: project link cards, optional tmuxp session controls, and optional AI-agent swarm hooks. The **dashboard alone** needs only Python and a registry of JSON files. Swarm, babysit, IDE, and MuxPod features are additive (per-project registry fields).
 
-Listens on **port 7890** (all interfaces; see `server.py`). Open `http://localhost:7890` or `http://<host>:7890` from another device over LAN or a private mesh/VPN if you use one (e.g. Tailscale, Yggdrasil, WireGuard — none required).
+Default listen: all interfaces (`::`) on port **7890**. Open `http://localhost:7890` or `http://<host>:7890` from another device over LAN or a private mesh/VPN if you use one (e.g. Tailscale, Yggdrasil, WireGuard — none required).
 
 ## Running
 
@@ -18,6 +18,32 @@ make validate             # errors if the registry is empty/missing
 ```
 
 `make` targets use `uv run`. Default registry is `./data`; override with **`JANUS_DATA_DIR`** (often a private checkout such as `~/dev/janus-data`). See `data.example/`.
+
+```sh
+JANUS_PORT=8080 make dev          # example override
+```
+
+## Configuration
+
+All of these are **optional env vars**. Defaults match the historical hardcodes.
+
+| Variable | Default | Used for |
+|----------|---------|----------|
+| `JANUS_DATA_DIR` | `./data` (beside the repo) | Project registry JSON directory |
+| `JANUS_HOST` | `::` | Bind address (`server.py`) |
+| `JANUS_PORT` | `7890` | Dashboard port |
+| `JANUS_DEV_ROOT` | `~/dev` | Project tree root for IDE deep-links + `ide/*/run.sh` |
+| `JANUS_IDE_CODE_SERVER_PORT` | `9321` | code-server listen port (`ide/code-server/run.sh`) |
+| `JANUS_IDE_CODE_SERVER_SCHEME` | `https` | URL scheme for dashboard links |
+| `JANUS_IDE_CODE_SERVER_URL` | *(built from scheme+port)* | Full base URL override for links |
+| `JANUS_IDE_FILEBROWSER_PORT` | `9323` | filebrowser port + dashboard links |
+| `JANUS_IDE_FILEBROWSER_URL` | *(built from port)* | Full base URL override |
+| `JANUS_IDE_TTYD_PORT` | `9322` | Public ttyd port (socat) |
+| `JANUS_IDE_TTYD_BACKEND_PORT` | `19322` | Internal ttyd port |
+| `JANUS_NUDGE_CLI` | `~/dev/nudge/swarm/cli.py` | Fallback if `aiswarm` not on `PATH` |
+| `MUXPOD_SERVER_ID` | hostname / `data/janus.json` | MuxPod Deep Link ID |
+
+Shared helpers live in `mk/paths.py`. Set the same vars when starting `ide/ops.yaml` so dashboard links and the tools stay aligned.
 
 ## Dependencies (dashboard)
 
@@ -37,13 +63,23 @@ Missing tools only disable their buttons/links; the rest still works.
 | Tool | Role | Notes |
 |------|------|--------|
 | **git** | Card `last_git_ts`; `janus.repo` list; new-project `git_init` | System package |
-| **tmux** / **[tmuxp](https://github.com/tmux-python/tmuxp)** | Ops up/down/bounce | `tmuxp load` |
-| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | Multi-agent tmux swarms, babysit, autostart | Separate project. `git clone … && make install-aiswarm`. Janus prefers `aiswarm` on `PATH`, else `~/dev/nudge/swarm/cli.py`. Runtime under `/tmp/nudge-swarm/<project>/`. Sample grid: `swarm/janus.yaml` (auto-approve flags — trusted machines only). |
+| **tmux** / **[tmuxp](https://github.com/tmux-python/tmuxp)** | Ops up/down/bounce | `tmuxp load`; `make ops-up` / `ops-down` |
+| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | Multi-agent tmux swarms, babysit, autostart | Separate project. `git clone https://github.com/cottrell/nudge.git && make install-aiswarm`. Prefer `aiswarm` on `PATH`, else `JANUS_NUDGE_CLI`. Runtime under `/tmp/nudge-swarm/<project>/`. Sample grid: `swarm/janus.yaml` (auto-approve — trusted machines only). |
 | **[Backlog.md](https://github.com/MrLesk/Backlog.md)** | New-project init; backlog browser links | Optional binary |
-| **GitHub CLI** (`gh`) | New-project `gh repo create` | Off by default |
+| **GitHub CLI** (`gh`) | New-project `gh repo create` | Off by default in `mk/new_project.defaults.json` |
 | **graphify** | Graph icon when `local_path/graphify-out/graph.html` exists | External pipeline |
-| **ide-tools** | Icons when `"ide_links": true` | **Optional.** No app auth — only for private mesh/VPN + firewall, not the public internet. Details: [`ide/SECURITY.md`](ide/SECURITY.md). Install: `bash mk/install-ide-tools.sh`. |
-| **[MuxPod](https://github.com/moezakura/mux-pod)** | Mobile tmux deep links | Match **Deep Link ID** in the app to `muxpod_server_id` in `data/janus.json` (or `MUXPOD_SERVER_ID`). SSH host can be any reachable name/IP. Single machine only for now. |
+| **ide-tools** | Icons when `"ide_links": true` | **Optional.** No app auth — private mesh/VPN + firewall only, not public internet. See [`ide/SECURITY.md`](ide/SECURITY.md). Install: `bash mk/install-ide-tools.sh`. Default ports 9321 / 9323 / 9322 (overridable above). |
+| **[MuxPod](https://github.com/moezakura/mux-pod)** | Mobile tmux deep links | Match app **Deep Link ID** to `muxpod_server_id` in registry or `MUXPOD_SERVER_ID`. SSH host = any reachable name/IP. Single machine for now (TASK-14). |
+
+### IDE tools (optional)
+
+Janus only shows filebrowser / code-server icons when a project sets `"ide_links": true`. Services are started via `ide/ops.yaml` if you use them.
+
+| Service | Default port | Script |
+|---------|--------------|--------|
+| code-server | 9321 (https links) | `ide/code-server/run.sh` |
+| filebrowser | 9323 | `ide/filebrowser/run.sh` |
+| ttyd | 9322 (public) / 19322 (backend) | `ide/ttyd/run.sh` |
 
 ## Adding links
 
@@ -63,7 +99,9 @@ One JSON file per project in the registry dir (`data/myproject.json` or under `J
 }
 ```
 
-Only **`project`** is required. Use **`localhost`** in URLs — the UI rewrites the host from `window.location.hostname` so the same links work on phone/remote. Optional: `local_path`, `github_url`/`gitlab_url`, `tmuxp_*`, `ops_up`/`swarm_up`, `ide_links`, `autostart`, `meta`, `muxpod_server_id`. Registry is re-read each request (no restart).
+Only **`project`** is required. Use **`localhost`** in URLs — the UI rewrites the host from `window.location.hostname` so the same links work on phone/remote.
+
+Optional fields: `local_path`, `github_url`/`gitlab_url`, `tmuxp_ops`/`tmuxp_swarm`, `ops_up`/`swarm_up` (default true when configs set), `ide_links`, `autostart`, `meta`, `muxpod_server_id`. Registry is re-read each request (no restart).
 
 ## New project
 
@@ -73,7 +111,21 @@ make new-project name=myproject
 # non-interactive: -y / --yes-all, --no-gh-repo, --path DIR, …
 ```
 
-Steps (each y/n/a/q, or defaults in `mk/new_project.defaults.json`): create dir under `~/dev/{name}`, git init, README, backlog, `aiswarm init`, `ops.yaml`, Janus registry JSON (local only), `janus.repo` git config, optional `gh repo create`. Also available as **+ new** in the dashboard UI. Details: `uv run python mk/new_project.py --help`.
+Also **+ new** in the dashboard. Defaults: `mk/new_project.defaults.json` (or `--config path`).
+
+| Step | What it does | Default |
+|------|----------------|---------|
+| `create_dir` | `mkdir` under `~/dev/{name}` or `--path` | on |
+| `git_init` | `git init` in the **new** project only | on |
+| `readme` | Minimal README | on |
+| `backlog_init` | `backlog init` | on |
+| `swarm_init` | `aiswarm init` | on |
+| `ops_yaml` | `ops.yaml` + backlog browser port from **6430+** (`backlog_port_start`) | on |
+| `janus_register` | Writes registry JSON locally (not auto-committed to janus) | on |
+| `janus_repo_list` | `git config --global --add janus.repo …` | on |
+| `gh_repo` | `gh repo create --private --push` | **off** |
+
+Prompts: **Y** / **n** / **a** (all remaining) / **q**. Details: `uv run python mk/new_project.py --help`.
 
 ## Notes
 
@@ -82,9 +134,11 @@ git config --global --add janus.repo ~/dev/myproject
 git for-each-repo --config=janus.repo status --short --branch
 ```
 
-**Fork assumptions** (not yet env-configurable): projects under `~/dev`; swarm CLI as above; IDE URLs `https://localhost:9321`, `http://localhost:9323`, `http://localhost:9322`; single host for Janus/tmux/MuxPod.
+Optional user systemd unit: `janus.service` + `service_setup.md` (edit paths for your machine).
 
 ## For agents
+
+Project conventions: see `AGENTS.md` (Claude/Gemini load the same file via symlink).
 
 ```sh
 REG="${JANUS_DATA_DIR:-./data}"
