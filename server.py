@@ -10,7 +10,7 @@ from pathlib import Path
 import yaml
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from mk.new_project import (
@@ -735,6 +735,22 @@ def new_project_create(body: NewProjectRequest):
             detail={"error": str(e), "log": log},
         )
     return result
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse(Path(__file__).parent / "favicon.ico")
+
+
+@app.get("/favicon-32.png", include_in_schema=False)
+def favicon_png():
+    return FileResponse(Path(__file__).parent / "favicon-32.png")
+
+
+@app.get("/logo.png", include_in_schema=False)
+def logo():
+    return FileResponse(Path(__file__).parent / "logo.png")
+
 
 
 @app.get("/", response_class=HTMLResponse)

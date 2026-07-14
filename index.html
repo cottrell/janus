@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Janus — Dev Links</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
   <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
   <style>
     :root {
@@ -12,6 +14,15 @@
       --card-icon-gap: 0.2rem;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    .brand-logo {
+      height: 2.5rem;
+      width: 2.5rem;
+      margin-right: 0.65rem;
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(34, 211, 238, 0.45);
+      object-fit: cover;
+      vertical-align: middle;
+    }
     body {
       font-family: system-ui, sans-serif;
       background: #0f1117;
@@ -686,6 +697,7 @@
 <body>
 <div id="app">
   <h1>
+    <img src="/logo.png" alt="Janus" width="40" height="40" class="brand-logo">
     Janus
     <button class="refresh-btn" @click="load">↻ refresh</button>
     <button class="refresh-btn" @click="toggleTopView" :title="topView === 'matrix' ? 'switch to row layout' : 'switch to matrix layout'">

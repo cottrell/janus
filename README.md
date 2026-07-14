@@ -1,5 +1,9 @@
 # Janus
 
+<p align="center">
+  <img src="logo.png" alt="Janus" width="160" height="160">
+</p>
+
 Local dev homepage and ops dashboard: project link cards, optional tmuxp session controls, and optional AI-agent swarm hooks. The **dashboard alone** needs only Python and a registry of JSON files. Swarm, babysit, IDE, and MuxPod features are additive (per-project registry fields).
 
 Listens on **port 7890** (all interfaces; see `server.py`). Open `http://localhost:7890` or `http://<host>:7890` from another device over LAN or a private mesh/VPN if you use one (e.g. Tailscale, Yggdrasil, WireGuard — none required).

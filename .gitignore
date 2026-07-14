@@ -11,3 +11,7 @@ ide/filebrowser/filebrowser.db
 ide/ttyd/ttyd.x86_64
 graphify-out/
 data/
+
+# local experiments (not for public repo)
+scratch/
+grok-projects-brief.md
