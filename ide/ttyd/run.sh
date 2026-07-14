@@ -5,7 +5,7 @@
 set -euo pipefail
 PUBLIC="${JANUS_IDE_TTYD_PORT:-9322}"
 BACKEND="${JANUS_IDE_TTYD_BACKEND_PORT:-19322}"
-ROOT="${JANUS_DEV_ROOT:-$HOME/dev}"
+ROOT="${JANUS_DEV_ROOT:-$HOME}"
 ROOT="${ROOT/#\~/$HOME}"
 
 TTYD="$(dirname "$0")/ttyd.x86_64"

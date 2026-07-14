@@ -4,7 +4,7 @@
 # disable: remove window from ide/ops.yaml or set ops_up: false on the registry entry
 set -euo pipefail
 PORT="${JANUS_IDE_FILEBROWSER_PORT:-9323}"
-ROOT="${JANUS_DEV_ROOT:-$HOME/dev}"
+ROOT="${JANUS_DEV_ROOT:-$HOME}"
 ROOT="${ROOT/#\~/$HOME}"
 
 if ! command -v filebrowser &>/dev/null; then

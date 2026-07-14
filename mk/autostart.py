@@ -79,7 +79,7 @@ def main():
                         print(f"[{project}] swarm session '{sess}' already running.")
                     else:
                         if not swarm_base:
-                            print(f"[{project}] swarm CLI not found: install aiswarm or nudge", file=sys.stderr)
+                            print(f"[{project}] swarm CLI not found: install aiswarm on PATH", file=sys.stderr)
                             continue
                         print(f"[{project}] autostarting swarm: {yaml_path}")
                         res = subprocess.run([*swarm_base, "start", str(yaml_path)], cwd=resolved_path)

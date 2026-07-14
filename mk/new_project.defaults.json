@@ -1,5 +1,5 @@
 {
-  "dev_root": "~/dev",
+  "dev_root": "~",
   "backlog_port_start": 6430,
   "gh_visibility": "private",
   "steps": {

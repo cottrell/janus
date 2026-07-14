@@ -4,7 +4,6 @@ import shutil
 from pathlib import Path
 
 JANUS_ROOT = Path(__file__).resolve().parent.parent
-NUDGE_CLI_FALLBACK = Path.home() / "dev/nudge/swarm/cli.py"
 
 
 def _env(name: str, default: str) -> str:
@@ -27,8 +26,8 @@ def get_data_dir() -> Path:
 
 
 def get_dev_root() -> Path:
-    """Project tree root for IDE deep-links (default ~/dev)."""
-    return Path(_env("JANUS_DEV_ROOT", str(Path.home() / "dev"))).expanduser().resolve()
+    """Project tree root for IDE deep-links (default: home directory). Override JANUS_DEV_ROOT."""
+    return Path(_env("JANUS_DEV_ROOT", str(Path.home()))).expanduser().resolve()
 
 
 def get_listen_host() -> str:
@@ -70,10 +69,12 @@ def get_ide_filebrowser_url() -> str:
 
 
 def resolve_swarm_argv() -> list[str] | None:
-    """Argv prefix for swarm CLI: prefer `aiswarm` on PATH, else python + nudge cli.py."""
+    """Argv prefix for swarm CLI: `aiswarm` on PATH, or JANUS_NUDGE_CLI path to cli.py."""
     if p := shutil.which("aiswarm"):
         return [p]
-    fallback = Path(_env("JANUS_NUDGE_CLI", str(NUDGE_CLI_FALLBACK))).expanduser()
-    if fallback.is_file():
-        return ["python3", str(fallback)]
+    raw = os.environ.get("JANUS_NUDGE_CLI")
+    if raw:
+        fallback = Path(raw).expanduser()
+        if fallback.is_file():
+            return ["python3", str(fallback)]
     return None

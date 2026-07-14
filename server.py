@@ -614,7 +614,7 @@ def _swarm_argv(*args: str) -> list[str]:
     if not base:
         raise HTTPException(
             status_code=500,
-            detail="swarm CLI not found: install aiswarm on PATH or nudge at ~/dev/nudge",
+            detail="swarm CLI not found: install aiswarm on PATH (or set JANUS_NUDGE_CLI)",
         )
     return [*base, *args]
 

@@ -17,7 +17,7 @@ make dev
 make validate             # errors if the registry is empty/missing
 ```
 
-`make` targets use `uv run`. Default registry is `./data`; override with **`JANUS_DATA_DIR`** (often a private checkout such as `~/dev/janus-data`). See `data.example/`.
+`make` targets use `uv run`. Default registry is `./data`; override with **`JANUS_DATA_DIR`** (e.g. a separate private registry checkout). See `data.example/`.
 
 ```sh
 JANUS_PORT=8080 make dev          # example override
@@ -31,7 +31,7 @@ Common env vars (optional; defaults match prior hardcodes). Full list: `mk/paths
 |----------|---------|----------|
 | `JANUS_DATA_DIR` | `./data` | Project registry JSON directory |
 | `JANUS_HOST` / `JANUS_PORT` | `::` / `7890` | Dashboard bind |
-| `JANUS_DEV_ROOT` | `~/dev` | Default project tree root |
+| `JANUS_DEV_ROOT` | `$HOME` | Project tree root (new-project default parent, IDE helpers) |
 
 ## Dependencies (dashboard)
 
@@ -52,7 +52,7 @@ If a tool is missing, that button/link simply does nothing; the rest still loads
 |------|------|
 | **git** | Card last-updated; `janus.repo` list; new-project init |
 | **tmux** / **[tmuxp](https://github.com/tmux-python/tmuxp)** | Ops up/down/bounce (`make ops-up` / `ops-down`) |
-| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | Agent swarms / babysit / autostart — install separately (`make install-aiswarm`) |
+| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | **Optional** — agent swarms / babysit / autostart only if you want them |
 | **[Backlog.md](https://github.com/MrLesk/Backlog.md)** | New-project init; backlog browser links |
 | **GitHub CLI** (`gh`) | Optional new-project `gh repo create` (off by default) |
 | **graphify** | Graph icon when output exists under `local_path` |
@@ -65,7 +65,7 @@ One JSON file per project in the registry dir (`data/myproject.json` or under `J
 ```json
 {
   "project": "myproject",
-  "local_path": "~/dev/myproject",
+  "local_path": "~/myproject",
   "github_url": "https://github.com/you/myproject",
   "tmuxp_ops": "ops.yaml",
   "tmuxp_swarm": "swarm/myproject.yaml",
@@ -91,7 +91,7 @@ Also **+ new** in the dashboard. Steps and defaults: `mk/new_project.defaults.js
 ## Notes
 
 ```sh
-git config --global --add janus.repo ~/dev/myproject
+git config --global --add janus.repo ~/myproject
 git for-each-repo --config=janus.repo status --short --branch
 ```
 

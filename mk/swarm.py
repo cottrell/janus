@@ -48,7 +48,7 @@ def main():
 
         if cmd == "up":
             if not swarm_base:
-                print("swarm CLI not found: install aiswarm on PATH or nudge at ~/dev/nudge", file=sys.stderr)
+                print("swarm CLI not found: install aiswarm on PATH (or set JANUS_NUDGE_CLI)", file=sys.stderr)
                 continue
             print(f"swarm up: {yaml_path}")
             res = subprocess.run([*swarm_base, "start", str(yaml_path)], cwd=resolved_path)

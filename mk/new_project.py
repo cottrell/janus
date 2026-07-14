@@ -474,7 +474,7 @@ def execute_steps(plan, decisions, log=None):
 def build_parser():
     parser = argparse.ArgumentParser(description="Interactive new-project setup for Janus.")
     parser.add_argument("name", help="Project name (slugified: spaces → hyphens, lowercased)")
-    parser.add_argument("--path", help="Project directory (default: ~/dev/{name})")
+    parser.add_argument("--path", help="Project directory (default: {dev_root}/{name}, see defaults)")
     parser.add_argument("--description", default="", help="One-line project description")
     parser.add_argument(
         "--gh-repo-name",

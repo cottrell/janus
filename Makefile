@@ -1,10 +1,6 @@
 all:
 	cat Makefile
-# Personal registry at ~/dev/janus-data when present; override: make dev JANUS_DATA_DIR=./data
-ifeq ($(wildcard $(HOME)/dev/janus-data/*.json),)
-else
-export JANUS_DATA_DIR ?= $(HOME)/dev/janus-data
-endif
+# Registry: default ./data via mk/paths.py, or export JANUS_DATA_DIR=...
 # Raise fd limit when the shell allows it (no-op if capped); then start dashboard.
 dev:
 	@bash -c 'ulimit -n 65536 2>/dev/null || true; exec uv run python server.py'
