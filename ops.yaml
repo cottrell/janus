@@ -4,7 +4,10 @@ windows:
   - window_name: ui-dev
     panes:
       - make dev
+  - window_name: autostart
+    panes:
       - make autostart
   - window_name: backlog-browser
     panes:
       - backlog browser -p 6419 --no-open
+
