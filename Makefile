@@ -1,9 +1,9 @@
 all:
 	cat Makefile
-# Registry: default ./data via mk/paths.py, or export JANUS_DATA_DIR=...
+# Registry: default ./data (JANUS_DATA_DIR). Extra server flags: make dev ARGS='--port 8080'
 # Raise fd limit when the shell allows it (no-op if capped); then start dashboard.
 dev:
-	@bash -c 'ulimit -n 65536 2>/dev/null || true; exec uv run python server.py'
+	@bash -c 'ulimit -n 65536 2>/dev/null || true; exec uv run python server.py $(ARGS)'
 validate:
 	uv run python mk/validate.py
 ops-up:

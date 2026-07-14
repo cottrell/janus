@@ -767,11 +767,29 @@ def index():
 
 
 if __name__ == "__main__":
+    import argparse
+
+    # CLI preferred for listen bind (single process). Env JANUS_HOST/JANUS_PORT
+    # still work as defaults when flags omitted (make/systemd).
+    p = argparse.ArgumentParser(description="Janus local dev homepage")
+    p.add_argument(
+        "--host",
+        default=get_listen_host(),
+        help=f"bind address (default {get_listen_host()!r}, env JANUS_HOST)",
+    )
+    p.add_argument(
+        "--port",
+        type=int,
+        default=get_listen_port(),
+        help=f"listen port (default {get_listen_port()}, env JANUS_PORT)",
+    )
+    p.add_argument("--no-reload", action="store_true", help="disable uvicorn reload")
+    args = p.parse_args()
     uvicorn.run(
         "server:app",
-        host=get_listen_host(),
-        port=get_listen_port(),
-        reload=True,
+        host=args.host,
+        port=args.port,
+        reload=not args.no_reload,
         reload_excludes=[".venv/*", "backlog/*", "graphify-out/*"],
     )
 

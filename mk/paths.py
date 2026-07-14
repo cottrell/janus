@@ -1,9 +1,24 @@
-"""Shared Janus paths and defaults — override with env vars (see README)."""
+"""Shared Janus paths and defaults.
+
+Dashboard listen: prefer CLI on server.py (`--host` / `--port`); env JANUS_HOST /
+JANUS_PORT are fallbacks for make/systemd.
+
+IDE ports: used by both server.py (link URLs) and ide/*/run.sh (listeners), so
+env JANUS_IDE_* is the shared knob — not CLI-only.
+"""
 import os
 import shutil
 from pathlib import Path
 
 JANUS_ROOT = Path(__file__).resolve().parent.parent
+
+# Defaults (single place to read)
+DEFAULT_HOST = "::"
+DEFAULT_PORT = 7890
+DEFAULT_IDE_CODE_SERVER_PORT = 9321
+DEFAULT_IDE_FILEBROWSER_PORT = 9323
+DEFAULT_IDE_TTYD_PORT = 9322
+DEFAULT_IDE_TTYD_BACKEND_PORT = 19322
 
 
 def _env(name: str, default: str) -> str:
@@ -26,32 +41,32 @@ def get_data_dir() -> Path:
 
 
 def get_dev_root() -> Path:
-    """Project tree root for IDE deep-links (default: home directory). Override JANUS_DEV_ROOT."""
+    """Project tree root for IDE deep-links (default: home). Override JANUS_DEV_ROOT."""
     return Path(_env("JANUS_DEV_ROOT", str(Path.home()))).expanduser().resolve()
 
 
 def get_listen_host() -> str:
-    return _env("JANUS_HOST", "::")
+    return _env("JANUS_HOST", DEFAULT_HOST)
 
 
 def get_listen_port() -> int:
-    return _env_int("JANUS_PORT", 7890)
+    return _env_int("JANUS_PORT", DEFAULT_PORT)
 
 
 def get_ide_code_server_port() -> int:
-    return _env_int("JANUS_IDE_CODE_SERVER_PORT", 9321)
+    return _env_int("JANUS_IDE_CODE_SERVER_PORT", DEFAULT_IDE_CODE_SERVER_PORT)
 
 
 def get_ide_filebrowser_port() -> int:
-    return _env_int("JANUS_IDE_FILEBROWSER_PORT", 9323)
+    return _env_int("JANUS_IDE_FILEBROWSER_PORT", DEFAULT_IDE_FILEBROWSER_PORT)
 
 
 def get_ide_ttyd_port() -> int:
-    return _env_int("JANUS_IDE_TTYD_PORT", 9322)
+    return _env_int("JANUS_IDE_TTYD_PORT", DEFAULT_IDE_TTYD_PORT)
 
 
 def get_ide_ttyd_backend_port() -> int:
-    return _env_int("JANUS_IDE_TTYD_BACKEND_PORT", 19322)
+    return _env_int("JANUS_IDE_TTYD_BACKEND_PORT", DEFAULT_IDE_TTYD_BACKEND_PORT)
 
 
 def get_ide_code_server_url() -> str:

@@ -6,8 +6,6 @@
 
 Local dev homepage and ops dashboard: project link cards, optional tmuxp session controls, and optional AI-agent swarm hooks. The **dashboard alone** needs only Python and a registry of JSON files. Extra integrations are additive (per-project registry fields).
 
-Default listen: all interfaces (`::`) on port **7890**. Open `http://localhost:7890` or `http://<host>:7890` from another device over LAN or a private mesh/VPN if you use one (e.g. Tailscale, Yggdrasil, WireGuard — none required).
-
 ## Running
 
 ```sh
@@ -17,21 +15,13 @@ make dev
 make validate             # errors if the registry is empty/missing
 ```
 
-`make` targets use `uv run`. Default registry is `./data`; override with **`JANUS_DATA_DIR`** (e.g. a separate private registry checkout). See `data.example/`.
+`make` targets use `uv run`. Default registry is `./data` (`JANUS_DATA_DIR` to override). See `data.example/`.
 
 ```sh
-JANUS_PORT=8080 make dev          # example override
+make dev ARGS='--port 8080'              # or: uv run python server.py --help
 ```
 
-## Configuration
-
-Common env vars (optional; defaults match prior hardcodes). Full list: `mk/paths.py`.
-
-| Variable | Default | Used for |
-|----------|---------|----------|
-| `JANUS_DATA_DIR` | `./data` | Project registry JSON directory |
-| `JANUS_HOST` / `JANUS_PORT` | `::` / `7890` | Dashboard bind |
-| `JANUS_DEV_ROOT` | `$HOME` | Project tree root (new-project default parent, IDE helpers) |
+Open the printed/local URL (default port is in `server.py --help` / `mk/paths.py`).
 
 ## Dependencies (dashboard)
 
@@ -95,7 +85,7 @@ git config --global --add janus.repo ~/myproject
 git for-each-repo --config=janus.repo status --short --branch
 ```
 
-Optional user systemd: `janus.service` + `service_setup.md`.
+Optional user systemd: `janus.service` + `service_setup.md`. Knobs for less common setup live in `mk/paths.py` and `uv run python server.py --help`.
 
 ## For agents
 
