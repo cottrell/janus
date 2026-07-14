@@ -23,7 +23,7 @@ references:
 CLI (and eventually UI) flow to scaffold a new dev project and register it with Janus.
 
 **Steps (each optional via y/n prompt, config, or flags):**
-1. Create directory (`~/dev/{name}` or `--path`)
+1. Create directory (`~/{name}` or `--path`)
 2. `git init` in the **new project only** (never commits to janus)
 3. README.md
 4. `backlog init`

@@ -37,7 +37,7 @@ Steps for this task (do NOT make the GitHub repo public):
 1. Add LICENSE (MIT)
 2. Restore data/ in .gitignore (keep data.example tracked)
 3. Clean-clone smoke: uv sync, copy data.example → data, make dev, hit /
-4. Prefer aiswarm on PATH for swarm CLI; fall back to ~/dev/nudge/swarm/cli.py; update README hardcoded assumptions
+4. Prefer aiswarm on PATH for swarm CLI; fall back to aiswarm on PATH / JANUS_NUDGE_CLI; update README hardcoded assumptions
 5. GitHub repo description (and topics if useful); LICENSE will be detected after push
 6. OUT OF SCOPE: make repo public
 
