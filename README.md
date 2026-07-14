@@ -6,6 +6,10 @@
 
 Local dev homepage and ops dashboard: project link cards, optional tmuxp session controls, and optional AI-agent swarm hooks. The **dashboard alone** needs only Python and a registry of JSON files. Extra integrations are additive (per-project registry fields).
 
+### Who this is for
+
+**One machine** (home lab, desk box, a single always-on host)—not a mini cloud. Think docker-compose weight: a dashboard, local paths, optional tmux sessions. Trying to recreate full cloud topology on a laptop usually fights you; either run in the cloud properly, or stay deliberately local and light like this. Janus assumes the latter.
+
 ## Running
 
 ```sh
