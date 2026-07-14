@@ -58,8 +58,16 @@ Features are additive: if a tool is missing, that button/link/status simply does
 | **[Backlog.md](https://github.com/MrLesk/Backlog.md)** CLI (`backlog`) | New-project `backlog init`; backlog browser links on cards | Install `backlog` binary; optional per project |
 | **GitHub CLI** (`gh`) | New-project optional `gh repo create --push` | [cli.github.com](https://cli.github.com/); wizard step off by default (`gh_repo: false` in `mk/new_project.defaults.json`) |
 | **graphify** | Graph icon + `/projects/{name}/graph` when `graphify-out/graph.html` exists under `local_path` | External pipeline; Janus only checks for output files |
-| **ide-tools** (code-server, filebrowser, ttyd) | `ide_links: true` on a project → filebrowser / code-server icons | Browser terminals/editors on fixed localhost ports (see below); partial install via `bash mk/install-ide-tools.sh` |
+| **ide-tools** (code-server, filebrowser, ttyd) | `ide_links: true` on a project → filebrowser / code-server icons | **Optional.** Only enabled per project via registry JSON; see [Optional IDE tools](#optional-ide-tools-security) |
 | **MuxPod** (Android/iOS app) | Mobile tmux hop icons (`muxpod://` deep links) | Phone app + Deep Link ID setup — see [MuxPod Integration](#muxpod-integration) |
+
+### Optional IDE tools (security)
+
+IDE helpers under `ide/` (code-server, filebrowser, ttyd) are **not required** for the dashboard. Janus only shows icons when a project JSON sets `"ide_links": true` — pure registry config, no special server mode.
+
+Those services currently run **with no application auth**. That is intentional only if the host is already on a **private overlay or VPN** (Yggdrasil, Tailscale, WireGuard, etc.) with a host firewall that limits who can reach the ports. Do **not** expose them on the public internet as-is.
+
+Details and service table: [`ide/SECURITY.md`](ide/SECURITY.md). Install is optional (`bash mk/install-ide-tools.sh`; Debian/apt-oriented).
 
 ### Optional — new-project wizard (`make new-project`)
 
