@@ -9,7 +9,7 @@ from pathlib import Path
 
 import yaml
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
@@ -737,20 +737,17 @@ def new_project_create(body: NewProjectRequest):
     return result
 
 
+# No StaticFiles mount — index is served as a string. These few root assets
+# need an explicit route so <img src="/logo.png"> / favicon links work.
 @app.get("/favicon.ico", include_in_schema=False)
-def favicon():
-    return FileResponse(Path(__file__).parent / "favicon.ico")
-
-
 @app.get("/favicon-32.png", include_in_schema=False)
-def favicon_png():
-    return FileResponse(Path(__file__).parent / "favicon-32.png")
-
-
 @app.get("/logo.png", include_in_schema=False)
-def logo():
-    return FileResponse(Path(__file__).parent / "logo.png")
-
+def root_asset(request: Request):
+    name = request.url.path.lstrip("/")
+    path = Path(__file__).parent / name
+    if not path.is_file():
+        raise HTTPException(status_code=404)
+    return FileResponse(path)
 
 
 @app.get("/", response_class=HTMLResponse)
