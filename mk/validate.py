@@ -21,8 +21,16 @@ def err(f, msg):
     errors.append(f"  {f.name}: {msg}")
 
 data_dir = get_data_dir()
+json_files = sorted(data_dir.glob('*.json')) if data_dir.is_dir() else []
 
-for f in sorted(data_dir.glob('*.json')):
+if not data_dir.is_dir() or not json_files:
+    print(f"No project JSON in {data_dir}")
+    print("  Fresh clone:  cp -r data.example data")
+    print("  Or set:       export JANUS_DATA_DIR=/path/to/registry")
+    print("  See data.example/ for starter shapes.")
+    sys.exit(1)
+
+for f in json_files:
     d = json.loads(f.read_text())
 
     # unknown fields
@@ -100,4 +108,4 @@ if errors:
         print(e)
     sys.exit(1)
 else:
-    print(f"OK — {len(list(data_dir.glob('*.json')))} files valid")
+    print(f"OK — {len(json_files)} files valid")

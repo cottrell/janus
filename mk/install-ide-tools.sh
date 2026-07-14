@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
+# Optional IDE helpers only — not required for Janus dashboard.
+# Currently Debian/Ubuntu-oriented (apt). On other systems install ttyd /
+# filebrowser / micro yourself and skip this script.
 set -euo pipefail
+
+if ! command -v apt &>/dev/null; then
+    echo "This script uses apt. Install ttyd, filebrowser, and micro manually on non-Debian systems."
+    exit 1
+fi
 
 echo "==> ttyd + micro (apt)"
 sudo apt install -y ttyd micro

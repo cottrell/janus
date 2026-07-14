@@ -30,6 +30,8 @@ You MUST read the overview resource to understand the complete workflow. The inf
 
 ## Swarm
 
+Optional multi-agent tmux grid via **[nudge](https://github.com/cottrell/nudge)** (`aiswarm` CLI on PATH). Not required for the dashboard.
+
 Swarm workflow: read first:
 - Runtime map: `/tmp/nudge-swarm/janus/runtime.json`
 - Self-awareness note: `/tmp/nudge-swarm/janus/self-awareness.txt`
@@ -39,7 +41,7 @@ Use as source of truth for:
 - monitor sockets, live state
 - babysit pid/log/spec/state files
 
-Swarm CLI: `aiswarm`
+Swarm CLI: `aiswarm` (see nudge README for install)
 
 Messaging (durable, preferred):
 - Use the comms log for reliability between agents: `aiswarm send <cfg> <pane> "msg"` or `log_broadcast`.

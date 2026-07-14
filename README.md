@@ -1,10 +1,8 @@
 # Janus
 
-Local dev homepage. Started as a mobile-accessible link dashboard (yggdrasil IPv6, accessible from phone), now evolving into a central ops starting point for local dev — particularly as projects move toward tmuxp/nudge-based orchestration rather than docker compose.
+Local dev homepage and ops dashboard: project link cards, optional tmuxp session controls, and optional AI-agent swarm hooks. The **dashboard alone** needs only Python + a registry of JSON files. Swarm / babysit / IDE / MuxPod features are additive and driven by per-project registry fields.
 
-Each project in `data/` carries metadata: local path, GitHub/GitLab URL, running service links, and pointers to its tmuxp ops and swarm configs. (The yaml config pointers are used for buttons but not shown in card meta for now.) Optional `meta` (canned + live-computed last_git_ts / graphify info) is also attached for future workflows (not displayed in UI). `meta.summaries[]` supports multiple AI sources (with `source`/`model`/`kind`/`content` etc.); use `has_any_ai_summary(meta)` for "any summary exists" trigger conditions.
-
-Default bind is all interfaces on port **7890** (see `server.py`). Over yggdrasil/other hosts, open `http://<host>:7890`.
+Default bind is all interfaces on port **7890** (see `server.py`). Over yggdrasil/VPN hosts, open `http://<host>:7890`.
 
 ## Running
 
@@ -14,6 +12,7 @@ Python deps are in `pyproject.toml` (FastAPI, uvicorn, PyYAML). Install/sync onc
 uv sync
 cp -r data.example data   # starter registry; or set JANUS_DATA_DIR (see below)
 make dev
+make validate             # fails clearly if registry is empty/missing
 ```
 
 All `make` Python targets use `uv run` so the project venv stays consistent. The project registry directory defaults to `./data` but is usually a separate checkout — set **`JANUS_DATA_DIR`** to its path (see [Project registry](#project-registry-data)).
@@ -54,12 +53,29 @@ Features are additive: if a tool is missing, that button/link/status simply does
 | **git** | `meta.last_git_ts` on cards; `git for-each-repo --config=janus.repo`; new-project `git_init` | System package |
 | **tmux** | Session existence checks; ops/swarm kill | System package |
 | **[tmuxp](https://github.com/tmux-python/tmuxp)** | Ops up/down/bounce (`tmuxp load`); `make ops-up` / `ops-down` | `pip install tmuxp` or system package |
-| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | Swarm start/stop, babysit apply/stop/status, `make autostart` | Prefer `aiswarm` on `PATH` (`make install-aiswarm` in nudge). Fallback: `~/dev/nudge/swarm/cli.py` |
+| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | Multi-agent tmux swarms, babysit, autostart | **Optional.** Separate project — see [Optional: nudge / aiswarm](#optional-nudge--aiswarm-agent-swarms) |
 | **[Backlog.md](https://github.com/MrLesk/Backlog.md)** CLI (`backlog`) | New-project `backlog init`; backlog browser links on cards | Install `backlog` binary; optional per project |
 | **GitHub CLI** (`gh`) | New-project optional `gh repo create --push` | [cli.github.com](https://cli.github.com/); wizard step off by default (`gh_repo: false` in `mk/new_project.defaults.json`) |
 | **graphify** | Graph icon + `/projects/{name}/graph` when `graphify-out/graph.html` exists under `local_path` | External pipeline; Janus only checks for output files |
 | **ide-tools** (code-server, filebrowser, ttyd) | `ide_links: true` on a project → filebrowser / code-server icons | **Optional.** Only enabled per project via registry JSON; see [Optional IDE tools](#optional-ide-tools-security) |
 | **MuxPod** (Android/iOS app) | Mobile tmux hop icons (`muxpod://` deep links) | Phone app + Deep Link ID setup — see [MuxPod Integration](#muxpod-integration) |
+
+### Optional: nudge / aiswarm (agent swarms)
+
+Swarm start/stop/babysit buttons and `make autostart` are **optional**. Without them, Janus is still a useful multi-project link + ops (tmuxp) homepage.
+
+**[nudge](https://github.com/cottrell/nudge)** is a separate tool: config-driven tmux layouts for AI coding agents (Claude, Codex, Grok, Antigravity, …), with monitoring and “babysit” idle nudges. Janus does not vendor nudge; it shells out to the CLI when a project JSON has `tmuxp_swarm` set.
+
+Install (from a nudge checkout):
+
+```sh
+git clone https://github.com/cottrell/nudge.git ~/dev/nudge
+cd ~/dev/nudge && make install-aiswarm   # puts `aiswarm` on PATH
+```
+
+Janus resolves the CLI via `mk/paths.resolve_swarm_argv()`: prefer **`aiswarm` on `PATH`**, else `python3 ~/dev/nudge/swarm/cli.py`. Runtime state lives under `/tmp/nudge-swarm/<project>/`.
+
+This repo’s `swarm/janus.yaml` is only a sample grid for developing Janus itself (uses auto-approve agent flags — trusted machines only).
 
 ### Optional IDE tools (security)
 
@@ -83,7 +99,7 @@ The wizard can scaffold a full project stack. Each step is optional (prompted, o
 | `janus_repo_list` | `git config --global --add janus.repo {path}` | on |
 | `gh_repo` | `gh repo create … --push` | **off** |
 
-Requires **git** for most flows; **backlog**, **nudge**, and **gh** only if those steps are enabled.
+Requires **git** for most flows; **backlog**, [nudge](https://github.com/cottrell/nudge)/`aiswarm`, and **gh** only if those steps are enabled.
 
 ### Hardcoded assumptions (fork/portability)
 

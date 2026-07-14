@@ -1,3 +1,6 @@
+# Optional local swarm layout for developing Janus itself.
+# Requires nudge/aiswarm: https://github.com/cottrell/nudge
+# Agent flags below auto-approve tools — only for trusted machines.
 session_name: janus
 windows:
   - window_name: grid
