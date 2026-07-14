@@ -32,8 +32,6 @@ Common env vars (optional; defaults match prior hardcodes). Full list: `mk/paths
 | `JANUS_DATA_DIR` | `./data` | Project registry JSON directory |
 | `JANUS_HOST` / `JANUS_PORT` | `::` / `7890` | Dashboard bind |
 | `JANUS_DEV_ROOT` | `~/dev` | Default project tree root |
-| `JANUS_NUDGE_CLI` | `~/dev/nudge/swarm/cli.py` | Swarm CLI if `aiswarm` not on `PATH` |
-| `MUXPOD_SERVER_ID` | hostname / registry | MuxPod Deep Link ID |
 
 ## Dependencies (dashboard)
 
