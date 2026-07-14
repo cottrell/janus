@@ -17,11 +17,27 @@ make validate             # errors if the registry is empty/missing
 
 `make` targets use `uv run`. Default registry is `./data` (`JANUS_DATA_DIR` to override). See `data.example/`.
 
+### Custom ports
+
+**Dashboard** (one process) — CLI flags, defaults from `mk/paths.py` / env:
+
 ```sh
-make dev ARGS='--port 8080'              # or: uv run python server.py --help
+make dev ARGS='--port 8080'                 # or --host 127.0.0.1
+uv run python server.py --port 8080 --help
 ```
 
-Open the printed/local URL (default port is in `server.py --help` / `mk/paths.py`).
+Env fallback if you omit flags: `JANUS_PORT`, `JANUS_HOST` (handy for systemd/tmux).
+
+**Optional IDE tools** (code-server / filebrowser / ttyd) — same numbers are used by `server.py` (card links) and `ide/*/run.sh` (listeners), so use **env**, not dashboard CLI:
+
+```sh
+export JANUS_IDE_CODE_SERVER_PORT=1901
+export JANUS_IDE_FILEBROWSER_PORT=1900
+export JANUS_IDE_TTYD_PORT=1902
+# start Janus and ide/ops under this env so links match
+```
+
+Full list of `JANUS_IDE_*` vars and defaults: `mk/paths.py` (and comments in `ide/*/run.sh`). Ignore this if you never enable `"ide_links": true`.
 
 ## Dependencies (dashboard)
 
