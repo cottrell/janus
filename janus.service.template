@@ -1,0 +1,30 @@
+# Install (user unit — not root):
+#   cp janus.service.template ~/.config/systemd/user/janus.service
+#   # edit TODOs, then:
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now janus.service
+# See service_setup.md
+[Unit]
+Description=ops-janus
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# Janus checkout (directory that contains ops.yaml)
+WorkingDirectory=<TODO_JANUS_CHECKOUT>
+
+# Registry: set here and/or in ops.yaml before `make dev`
+# Environment=JANUS_DATA_DIR=<TODO_REGISTRY_DIR>
+
+# Login shell for PATH (uv, tmuxp, …). Prefer `tmuxp` on PATH, or absolute path.
+ExecStart=/bin/bash -l -c 'tmuxp load -d ops.yaml'
+
+ExecStop=/usr/bin/tmux kill-session -t ops-janus
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

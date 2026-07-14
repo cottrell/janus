@@ -101,7 +101,7 @@ git config --global --add janus.repo ~/myproject
 git for-each-repo --config=janus.repo status --short --branch
 ```
 
-Optional user systemd: `janus.service` + `service_setup.md`. Knobs for less common setup live in `mk/paths.py` and `uv run python server.py --help`.
+Optional user systemd: `ops.yaml.template` + `janus.service.template` → see `service_setup.md`. Knobs: `mk/paths.py`, `uv run python server.py --help`.
 
 ## For agents
 

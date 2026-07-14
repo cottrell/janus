@@ -1,0 +1,15 @@
+# Copy to ops.yaml (gitignored) and fill TODOs.
+# tmuxp load -d ops.yaml  — from the Janus checkout (WorkingDirectory).
+session_name: ops-janus
+start_directory: ./
+windows:
+  - window_name: ui-dev
+    panes:
+      # Optional: export JANUS_DATA_DIR=<TODO_REGISTRY_DIR> && make dev
+      - make dev
+  - window_name: autostart
+    panes:
+      - make autostart
+  - window_name: backlog-browser
+    panes:
+      - backlog browser -p <TODO_BACKLOG_PORT> --no-open
