@@ -6,7 +6,7 @@ else
 export JANUS_DATA_DIR ?= $(HOME)/dev/janus-data
 endif
 dev:
-	uv run python server.py
+	ulimit -n 65536 && uv run python server.py
 validate:
 	uv run python mk/validate.py
 ops-up:
