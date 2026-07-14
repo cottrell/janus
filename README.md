@@ -25,25 +25,17 @@ JANUS_PORT=8080 make dev          # example override
 
 ## Configuration
 
-All of these are **optional env vars**. Defaults match the historical hardcodes.
+Optional env vars (defaults = previous hardcodes). Implemented in `mk/paths.py`.
 
 | Variable | Default | Used for |
 |----------|---------|----------|
-| `JANUS_DATA_DIR` | `./data` (beside the repo) | Project registry JSON directory |
-| `JANUS_HOST` | `::` | Bind address (`server.py`) |
-| `JANUS_PORT` | `7890` | Dashboard port |
-| `JANUS_DEV_ROOT` | `~/dev` | Project tree root for IDE deep-links + `ide/*/run.sh` |
-| `JANUS_IDE_CODE_SERVER_PORT` | `9321` | code-server listen port (`ide/code-server/run.sh`) |
-| `JANUS_IDE_CODE_SERVER_SCHEME` | `https` | URL scheme for dashboard links |
-| `JANUS_IDE_CODE_SERVER_URL` | *(built from scheme+port)* | Full base URL override for links |
-| `JANUS_IDE_FILEBROWSER_PORT` | `9323` | filebrowser port + dashboard links |
-| `JANUS_IDE_FILEBROWSER_URL` | *(built from port)* | Full base URL override |
-| `JANUS_IDE_TTYD_PORT` | `9322` | Public ttyd port (socat) |
-| `JANUS_IDE_TTYD_BACKEND_PORT` | `19322` | Internal ttyd port |
-| `JANUS_NUDGE_CLI` | `~/dev/nudge/swarm/cli.py` | Fallback if `aiswarm` not on `PATH` |
-| `MUXPOD_SERVER_ID` | hostname / `data/janus.json` | MuxPod Deep Link ID |
+| `JANUS_DATA_DIR` | `./data` | Project registry JSON directory |
+| `JANUS_HOST` / `JANUS_PORT` | `::` / `7890` | Dashboard bind |
+| `JANUS_DEV_ROOT` | `~/dev` | Project tree root (new-project, IDE deep-links) |
+| `JANUS_NUDGE_CLI` | `~/dev/nudge/swarm/cli.py` | Swarm CLI if `aiswarm` not on `PATH` |
+| `MUXPOD_SERVER_ID` | hostname / registry | MuxPod Deep Link ID |
 
-Shared helpers live in `mk/paths.py`. Set the same vars when starting `ide/ops.yaml` so dashboard links and the tools stay aligned.
+Optional IDE helpers under `ide/` also read `JANUS_IDE_*` port/URL vars (defaults 9321 / 9323 / 9322) — only relevant if you enable `"ide_links": true`. See `mk/paths.py` and [`ide/SECURITY.md`](ide/SECURITY.md).
 
 ## Dependencies (dashboard)
 
