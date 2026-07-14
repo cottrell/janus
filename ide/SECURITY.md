@@ -30,5 +30,5 @@ do not run these services.
 
 ## Ops
 
-Start via `ide/ops.yaml` (tmuxp) only if you need them. Install is optional and
-currently Debian/apt-oriented (`mk/install-ide-tools.sh`).
+Start via `ide/ops.yaml` (tmuxp) only if you need them. Install is optional
+(`mk/install-ide-tools.sh`).

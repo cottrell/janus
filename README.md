@@ -83,7 +83,7 @@ IDE helpers under `ide/` (code-server, filebrowser, ttyd) are **not required** f
 
 Those services currently run **with no application auth**. That is intentional only if access is limited by a **private mesh/VPN and/or host firewall** (examples: Tailscale, Yggdrasil, WireGuard — interchangeable for this purpose). Janus does not depend on any of them. Do **not** expose IDE ports on the public internet as-is.
 
-Details and service table: [`ide/SECURITY.md`](ide/SECURITY.md). Install is optional (`bash mk/install-ide-tools.sh`; Debian/apt-oriented).
+Details and service table: [`ide/SECURITY.md`](ide/SECURITY.md). Install is optional (`bash mk/install-ide-tools.sh`).
 
 ### Optional — new-project wizard (`make new-project`)
 
