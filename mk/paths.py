@@ -6,6 +6,8 @@ JANUS_PORT are fallbacks for make/systemd.
 IDE ports: used by both server.py (link URLs) and ide/*/run.sh (listeners), so
 env JANUS_IDE_* is the shared knob — not CLI-only.
 """
+import json
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -33,11 +35,36 @@ def _env_int(name: str, default: int) -> int:
     return int(v)
 
 
+_logged_data_dir = False
+
+
 def get_data_dir() -> Path:
+    global _logged_data_dir
     raw = os.environ.get("JANUS_DATA_DIR")
     if raw:
-        return Path(raw).expanduser().resolve()
-    return JANUS_ROOT / "data"
+        path = Path(raw).expanduser()
+    else:
+        path = JANUS_ROOT / "data"
+
+    resolved = path.resolve()
+
+    if not _logged_data_dir:
+        if not logging.getLogger().hasHandlers():
+            logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+        
+        info = {
+            "env_var_set": raw is not None,
+            "env_var_value": raw,
+            "raw_path": str(path),
+            "is_symlink": path.is_symlink(),
+            "symlink_target": str(os.readlink(path)) if path.is_symlink() else None,
+            "resolved_path": str(resolved),
+        }
+        logging.info("Using data directory: %s", resolved)
+        logging.info("Data directory resolution details: %s", json.dumps(info))
+        _logged_data_dir = True
+
+    return resolved
 
 
 def get_dev_root() -> Path:

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-import json, re, sys, yaml
+import json, logging, re, sys, yaml
 from collections import defaultdict
 from pathlib import Path
 
 from paths import get_data_dir
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 KNOWN_FIELDS = {'project', 'local_path', 'github_url', 'gitlab_url',
                 'tmuxp_ops', 'tmuxp_swarm', 'description', 'links',
@@ -31,6 +33,7 @@ if not data_dir.is_dir() or not json_files:
     sys.exit(1)
 
 for f in json_files:
+    logging.info("Reading project config: %s", f)
     d = json.loads(f.read_text())
 
     # unknown fields
