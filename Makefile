@@ -16,6 +16,9 @@ swarm-down:
 	uv run python mk/swarm.py down
 clone:
 	bash mk/clone.sh
+# Backfill github_url/gitlab_url from git remote origin. ARGS=--dry-run or --force
+sync-repo-urls:
+	uv run python mk/sync_repo_urls.py $(ARGS)
 new-project:
 	uv run python mk/new_project.py $(name)
 autostart:
