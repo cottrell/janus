@@ -75,7 +75,7 @@ One JSON file per project in the registry dir (`data/myproject.json` or under `J
 ```json
 {
   "project": "myproject",
-  "local_path": "~/myproject",
+  "local_path": "~/dev/myproject",
   "github_url": "https://github.com/you/myproject",
   "tmuxp_ops": "ops.yaml",
   "tmuxp_swarm": ".aiswarm/config.yaml",
@@ -101,7 +101,7 @@ Also **+ new** in the dashboard. Steps and defaults: `mk/new_project.defaults.js
 ## Notes
 
 ```sh
-git config --global --add janus.repo ~/myproject
+git config --global --add janus.repo ~/dev/myproject
 git for-each-repo --config=janus.repo status --short --branch
 ```
 
