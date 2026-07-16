@@ -27,32 +27,19 @@ You MUST read the overview resource to understand the complete workflow. The inf
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
 
-
+<!-- AISWARM/NUDGE GUIDELINES START -->
 ## Swarm
 
-Optional multi-agent tmux grid via **[nudge](https://github.com/cottrell/nudge)** (`aiswarm` CLI on PATH). Not required for the dashboard.
+Swarm CLI: `aiswarm` (on PATH; `make install-aiswarm` from the nudge repo).
 
-Swarm workflow: read first:
-- Runtime map: `/tmp/nudge-swarm/janus/runtime.json`
-- Self-awareness note: `/tmp/nudge-swarm/janus/self-awareness.txt`
+Read workflow first:
+- `aiswarm` — common commands cheat sheet
+- `aiswarm instructions overview` — required agent briefing
+- `aiswarm instructions handoff` / `tasks` — peer send and backlog dispatch
+- `aiswarm this` — this swarm's config + runtime.json path
 
-Use as source of truth for:
-- tmux pane targets
-- monitor sockets, live state
-- babysit pid/log/spec/state files
+After start, machine map (not git): `/tmp/nudge-swarm/janus/runtime.json`
 
-Swarm CLI: `aiswarm` (see nudge README for install)
-
-Messaging (durable, preferred):
-- Use the comms log for reliability between agents: `aiswarm send <cfg> <pane> "msg"` or `log_broadcast`.
-- Inspect: `aiswarm log <cfg> [--pending] [--pane 0.2]`, `aiswarm cursors <cfg>`.
-- Direct/manual still works: `./tmux-send <target> "message"`.
-
-Worker loop:
-- `aiswarm start <cfg>` starts the base comms worker for `monitor: true` panes.
-- The worker consumes the log and delivers via `tmux-send` when the pane is idle.
-- Babysit prompt nudges are independent; use `aiswarm babysit start|stop <cfg>`.
-
-Do NOT use raw `tmux send-keys ... Enter`.
-
-Swarm scripts: `swarm/`.
+Config: `.aiswarm/config.yaml` (cwd walk-up), `$AISWARM_CONFIG`, or explicit path.
+Messaging: `aiswarm send <pane> "msg"` (durable log). Do NOT raw `tmux send-keys`.
+<!-- AISWARM/NUDGE GUIDELINES END -->
