@@ -519,6 +519,28 @@ def babysit_status(root, config):
 
     return {"state": "stopped", "up": False}
 
+def tasks_status(root, config):
+    try:
+        name = session_name(config)
+    except Exception as e:
+        return {"state": "errored", "up": False, "error": f"failed to parse config: {e}"}
+
+    if not tmux_session_exists(name):
+        return {"state": "stopped", "up": False}
+
+    pid_file = Path("/tmp/nudge-swarm") / name / "tasks" / "dispatcher.pid"
+    if not pid_file.is_file():
+        return {"state": "stopped", "up": False}
+
+    try:
+        pid = int(pid_file.read_text().strip())
+    except Exception:
+        return {"state": "errored", "up": False, "error": "dispatcher.pid unreadable"}
+
+    if is_pid_running(pid):
+        return {"state": "running", "up": True}
+    return {"state": "errored", "up": False, "error": "dispatcher is stale"}
+
 def swarm_panes_status(root, config):
     try:
         name = session_name(config)
@@ -581,6 +603,15 @@ def status():
                     "error": e.detail,
                     "up": False,
                     "configured": False,
+                }
+            try:
+                root, config = resolve_config(project, "swarm")
+                project_status["tasks"] = tasks_status(root, config)
+            except HTTPException as e:
+                project_status["tasks"] = {
+                    "state": "errored",
+                    "error": e.detail,
+                    "up": False,
                 }
         if project_status:
             result[project["project"]] = project_status
@@ -656,6 +687,18 @@ def babysit_start(project: str):
 def babysit_stop(project: str):
     root, config = resolve_config(load_project(project), "swarm")
     return run_command(_swarm_argv("babysit", "stop", str(config)), root)
+
+
+@app.post("/api/projects/{project}/tasks/start")
+def tasks_start(project: str):
+    root, config = resolve_config(load_project(project), "swarm")
+    return run_command(_swarm_argv("tasks", "start", str(config)), root)
+
+
+@app.post("/api/projects/{project}/tasks/stop")
+def tasks_stop(project: str):
+    root, config = resolve_config(load_project(project), "swarm")
+    return run_command(_swarm_argv("tasks", "stop", str(config)), root)
 
 @app.get("/projects/{project}/graph", response_class=HTMLResponse)
 def project_graph(project: str):
