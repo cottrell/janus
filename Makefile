@@ -4,6 +4,8 @@ all:
 # Raise fd limit when the shell allows it (no-op if capped); then start dashboard.
 dev:
 	@bash -c 'ulimit -n 65536 2>/dev/null || true; exec uv run python server.py $(ARGS)'
+dev-serve:
+	@bash -c 'ulimit -n 65536 2>/dev/null || true; exec uv run python server.py --no-reload $(ARGS)'
 validate:
 	uv run python mk/validate.py
 ops-up:
