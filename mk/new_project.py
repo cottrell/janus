@@ -272,8 +272,8 @@ def step_backlog_init(project_path, name, log=None):
 
 
 def step_swarm_init(project_path, name, log=None):
-    if (project_path / "swarm").exists():
-        say("  swarm/ already exists — skipping", log)
+    if (project_path / ".aiswarm" / "config.yaml").is_file():
+        say("  .aiswarm/config.yaml already exists — skipping", log)
         return
     base = resolve_swarm_argv()
     if not base:
@@ -324,7 +324,7 @@ def build_janus_config(name, local_path, description, backlog_port, github_url=N
         "project": name,
         "local_path": local_path,
         "tmuxp_ops": "ops.yaml",
-        "tmuxp_swarm": f"swarm/{name}.yaml",
+        "tmuxp_swarm": ".aiswarm/config.yaml",
         "description": description,
         "ide_links": True,
         "links": [

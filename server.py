@@ -628,17 +628,19 @@ def swarm_up(project: str):
 @app.post("/api/projects/{project}/swarm/down")
 def swarm_down(project: str):
     root, config = resolve_config(load_project(project), "swarm")
-    name = session_name(config)
-    return run_command(["tmux", "kill-session", "-t", f"={name}"], root)
+    # aiswarm stop tears down tasks/babysit/comms workers + tmux (not bare kill-session)
+    return run_command(_swarm_argv("stop", str(config)), root)
 
 
 @app.post("/api/projects/{project}/swarm/bounce")
 def swarm_bounce(project: str):
     root, config = resolve_config(load_project(project), "swarm")
-    name = session_name(config)
-    argv = _swarm_argv("start", str(config))
-    cmd = f"tmux kill-session -t '={name}' 2>/dev/null; sleep 1; " + " ".join(
-        shlex.quote(a) for a in argv
+    stop_argv = _swarm_argv("stop", str(config))
+    start_argv = _swarm_argv("start", str(config))
+    cmd = (
+        " ".join(shlex.quote(a) for a in stop_argv)
+        + " 2>/dev/null; sleep 1; "
+        + " ".join(shlex.quote(a) for a in start_argv)
     )
     subprocess.Popen(["bash", "-c", cmd], cwd=root, start_new_session=True)
     return {"ok": True}

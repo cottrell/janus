@@ -55,10 +55,13 @@ def main():
             if res.returncode != 0:
                 print(f"Warning: failed to load swarm session (exit code {res.returncode})", file=sys.stderr)
         elif cmd == "down":
-            sess = get_session_name(yaml_path)
-            if sess:
-                print(f"swarm down: {sess}")
-                subprocess.run(["tmux", "kill-session", "-t", f"={sess}"], stderr=subprocess.DEVNULL)
+            if not swarm_base:
+                print("swarm CLI not found: install aiswarm on PATH (or set JANUS_NUDGE_CLI)", file=sys.stderr)
+                continue
+            print(f"swarm down: {yaml_path}")
+            res = subprocess.run([*swarm_base, "stop", str(yaml_path)], cwd=resolved_path)
+            if res.returncode != 0:
+                print(f"Warning: failed to stop swarm session (exit code {res.returncode})", file=sys.stderr)
 
 if __name__ == "__main__":
     main()

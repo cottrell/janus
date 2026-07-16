@@ -78,7 +78,7 @@ One JSON file per project in the registry dir (`data/myproject.json` or under `J
   "local_path": "~/myproject",
   "github_url": "https://github.com/you/myproject",
   "tmuxp_ops": "ops.yaml",
-  "tmuxp_swarm": "swarm/myproject.yaml",
+  "tmuxp_swarm": ".aiswarm/config.yaml",
   "description": "optional one-liner",
   "links": [
     {"label": "Dev server", "url": "http://localhost:3000"}
