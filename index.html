@@ -639,7 +639,7 @@
     }
     .matrix-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) repeat(3, 2.5rem);
+      grid-template-columns: minmax(0, 1fr) repeat(4, 2.5rem);
       gap: 0.3rem;
     }
     .matrix-name,
@@ -674,7 +674,7 @@
       cursor: default;
     }
     @media (pointer: coarse) {
-      .matrix-row { grid-template-columns: minmax(0, 1fr) repeat(3, 2.8rem); }
+      .matrix-row { grid-template-columns: minmax(0, 1fr) repeat(4, 2.8rem); }
       .matrix-name, .matrix-cell { padding-top: 0.42rem; padding-bottom: 0.42rem; }
     }
     @media (max-width: 480px) {
@@ -715,12 +715,12 @@
         :title="intentTitle(p)"
         @click="projectClick(p)"
       >{{ p.project }}</button>
-      <template v-for="kind in ['ops', 'swarm', 'babysit']" :key="kind">
+      <template v-for="kind in ['ops', 'swarm', 'babysit', 'tasks']" :key="kind">
         <button
           v-if="hasKind(p, kind)"
           class="matrix-cell"
           :class="buttonClass(p, kind)"
-          :disabled="isBusy(p, kind)"
+          :disabled="isBusy(p, kind) || swarmBlocked(p, kind)"
           type="button"
           :title="statusTitle(p, kind)"
           @click="runTopAction(p, kind)"
@@ -847,7 +847,7 @@
   </div>
   <div
     class="top-status"
-    v-if="topView === 'rows' && (projectsForKind('ops').length || projectsForKind('swarm').length || projectsForKind('babysit').length)"
+    v-if="topView === 'rows' && (projectsForKind('ops').length || projectsForKind('swarm').length || projectsForKind('babysit').length || projectsForKind('tasks').length)"
   >
     <div class="top-status-row" v-if="projectsForKind('ops').length">
       <div class="top-status-label">ops</div>
@@ -887,10 +887,25 @@
           :key="`babysit-${p.project}`"
           class="top-status-tile"
           :class="buttonClass(p, 'babysit')"
-          :disabled="isBusy(p, 'babysit')"
+          :disabled="isBusy(p, 'babysit') || swarmBlocked(p, 'babysit')"
           type="button"
           :title="statusTitle(p, 'babysit')"
           @click="runTopAction(p, 'babysit')"
+        >{{ p.project }}</button>
+      </div>
+    </div>
+    <div class="top-status-row" v-if="projectsForKind('tasks').length">
+      <div class="top-status-label">tasks</div>
+      <div class="top-status-list">
+        <button
+          v-for="p in projectsForKind('tasks')"
+          :key="`tasks-${p.project}`"
+          class="top-status-tile"
+          :class="buttonClass(p, 'tasks')"
+          :disabled="isBusy(p, 'tasks') || swarmBlocked(p, 'tasks')"
+          type="button"
+          :title="statusTitle(p, 'tasks')"
+          @click="runTopAction(p, 'tasks')"
         >{{ p.project }}</button>
       </div>
     </div>
@@ -993,7 +1008,8 @@
           <button
             class="action-btn"
             :class="buttonClass(p, 'babysit')"
-            :disabled="isBusy(p, 'babysit')"
+            :disabled="isBusy(p, 'babysit') || swarmBlocked(p, 'babysit')"
+            :title="swarmBlocked(p, 'babysit') ? 'start swarm first' : ''"
             @click="runAction(p, 'babysit', 'start')"
           >babysit on</button>
           <button
@@ -1001,6 +1017,21 @@
             :class="{ active: isUp(p, 'babysit') || babysitState(p) === 'stopped' }"
             :disabled="isBusy(p, 'babysit')"
             @click="runAction(p, 'babysit', 'stop')"
+          >off</button>
+        </div>
+        <div class="action-group" v-if="canTasks(p)">
+          <button
+            class="action-btn"
+            :class="buttonClass(p, 'tasks')"
+            :disabled="isBusy(p, 'tasks') || swarmBlocked(p, 'tasks')"
+            :title="swarmBlocked(p, 'tasks') ? 'start swarm first' : ''"
+            @click="runAction(p, 'tasks', 'start')"
+          >tasks on</button>
+          <button
+            class="action-btn down"
+            :class="{ active: isUp(p, 'tasks') || tasksState(p) === 'stopped' }"
+            :disabled="isBusy(p, 'tasks')"
+            @click="runAction(p, 'tasks', 'stop')"
           >off</button>
         </div>
         <span
@@ -1059,7 +1090,7 @@ createApp({
     const projects = ref([]);
     const topView = ref(localStorage.getItem('janus-top-view') || 'matrix');
     const clickMode = ref(localStorage.getItem('janus-click-mode') || 'filter');
-    const kindLabels = { ops: 'ops', swarm: 'swm', babysit: 'sit' };
+    const kindLabels = { ops: 'ops', swarm: 'swm', babysit: 'sit', tasks: 'tsk' };
     const actionStatus = ref({});
     const status = ref({});
     const activeProject = ref('');
@@ -1452,14 +1483,24 @@ createApp({
     }
     function projectsForKind(kind) {
       if (kind === 'babysit') return projects.value.filter(canBabysit);
+      if (kind === 'tasks') return projects.value.filter(canTasks);
       const canKind = kind === 'ops' ? canOps : canSwarm;
       return projects.value.filter(canKind);
     }
     function canBabysit(p) {
       return p.local_path && p.tmuxp_swarm && !!status.value[p.project]?.babysit?.configured;
     }
+    function canTasks(p) {
+      return p.local_path && p.tmuxp_swarm;
+    }
     function hasKind(p, kind) {
-      return kind === 'ops' ? canOps(p) : kind === 'swarm' ? canSwarm(p) : canBabysit(p);
+      if (kind === 'ops') return canOps(p);
+      if (kind === 'swarm') return canSwarm(p);
+      if (kind === 'tasks') return canTasks(p);
+      return canBabysit(p);
+    }
+    function swarmBlocked(p, kind) {
+      return (kind === 'babysit' || kind === 'tasks') && !isUp(p, 'swarm');
     }
     function toggleTopView() {
       topView.value = topView.value === 'matrix' ? 'rows' : 'matrix';
@@ -1479,6 +1520,9 @@ createApp({
     function babysitState(p) {
       return status.value[p.project]?.babysit?.state || '';
     }
+    function tasksState(p) {
+      return status.value[p.project]?.tasks?.state || '';
+    }
     function isBusy(p, kind) {
       return actionStatus.value[p.project]?.busy === kind;
     }
@@ -1490,18 +1534,20 @@ createApp({
     }
     function statusTitle(p, kind) {
       const s = status.value[p.project]?.[kind];
+      if (swarmBlocked(p, kind)) return `${p.project}: start swarm first`;
       if (s?.error) return `${p.project}: ${s.error}`;
-      if (s?.up) return kind === 'babysit'
+      if (s?.up) return (kind === 'babysit' || kind === 'tasks')
         ? `${p.project}: ${kind} up`
         : `${p.project}: stop ${kind}`;
       return `${p.project}: start ${kind}`;
     }
     function runTopAction(p, kind) {
-      if (kind === 'babysit' && isUp(p, kind)) {
+      if (swarmBlocked(p, kind)) return;
+      if ((kind === 'babysit' || kind === 'tasks') && isUp(p, kind)) {
         jumpToProject(p);
         return;
       }
-      const action = kind === 'babysit' ? 'start' : isUp(p, kind) ? 'down' : 'up';
+      const action = (kind === 'babysit' || kind === 'tasks') ? 'start' : isUp(p, kind) ? 'down' : 'up';
       runAction(p, kind, action);
     }
     async function runAction(p, kind, action) {
@@ -1566,8 +1612,11 @@ createApp({
       canSwarm,
       projectsForKind,
       canBabysit,
+      canTasks,
       isUp,
       babysitState,
+      tasksState,
+      swarmBlocked,
       isBusy,
       buttonClass,
       statusTitle,
