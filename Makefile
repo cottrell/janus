@@ -29,8 +29,13 @@ sync:
 	uv sync
 
 
+CMD := $(c)
+ifeq ($(CMD),)
+  CMD := $(filter-out do,$(MAKECMDGOALS))
+endif
+
 do:
-	@bash mk/do.sh "$(c)"
+	@bash mk/do.sh "$(CMD)"
 
 # Catch-all target to silence "No rule to make target" for arguments
 %:
