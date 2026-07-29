@@ -528,18 +528,18 @@ def tasks_status(root, config):
     if not tmux_session_exists(name):
         return {"state": "stopped", "up": False}
 
-    pid_file = Path("/tmp/nudge-swarm") / name / "tasks" / "dispatcher.pid"
+    pid_file = Path("/tmp/nudge-swarm") / name / "session_worker.pid"
     if not pid_file.is_file():
         return {"state": "stopped", "up": False}
 
     try:
         pid = int(pid_file.read_text().strip())
     except Exception:
-        return {"state": "errored", "up": False, "error": "dispatcher.pid unreadable"}
+        return {"state": "errored", "up": False, "error": "session_worker.pid unreadable"}
 
     if is_pid_running(pid):
         return {"state": "running", "up": True}
-    return {"state": "errored", "up": False, "error": "dispatcher is stale"}
+    return {"state": "errored", "up": False, "error": "session worker is stale"}
 
 def swarm_panes_status(root, config):
     try:
@@ -837,4 +837,3 @@ if __name__ == "__main__":
         reload=not args.no_reload,
         reload_excludes=[".venv/*", "backlog/*", "graphify-out/*"],
     )
-
