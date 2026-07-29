@@ -1029,7 +1029,7 @@
           >tasks on</button>
           <button
             class="action-btn down"
-            :class="{ active: isUp(p, 'tasks') || tasksState(p) === 'stopped' }"
+            :class="{ active: !isUp(p, 'tasks') && tasksState(p) === 'stopped' }"
             :disabled="isBusy(p, 'tasks')"
             @click="runAction(p, 'tasks', 'stop')"
           >off</button>
