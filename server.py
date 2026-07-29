@@ -528,7 +528,24 @@ def tasks_status(root, config):
     if not tmux_session_exists(name):
         return {"state": "stopped", "up": False}
 
-    pid_file = Path("/tmp/nudge-swarm") / name / "session_worker.pid"
+    runtime_dir = Path("/tmp/nudge-swarm") / name
+    runtime_file = runtime_dir / "runtime.json"
+    try:
+        runtime_data = json.loads(runtime_file.read_text())
+        tasks = runtime_data.get("tasks") or {}
+        enabled_file = Path(tasks.get("enabled") or runtime_dir / "tasks" / "enabled.json")
+    except Exception as e:
+        return {"state": "errored", "up": False, "error": f"failed to parse runtime map: {e}"}
+
+    if not enabled_file.is_file():
+        return {"state": "stopped", "up": False}
+    try:
+        if not bool(json.loads(enabled_file.read_text()).get("enabled")):
+            return {"state": "stopped", "up": False}
+    except Exception as e:
+        return {"state": "errored", "up": False, "error": f"tasks enabled marker unreadable: {e}"}
+
+    pid_file = Path(tasks.get("pid") or runtime_dir / "session_worker.pid")
     if not pid_file.is_file():
         return {"state": "stopped", "up": False}
 
