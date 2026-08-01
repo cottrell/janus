@@ -1,10 +1,10 @@
 ---
 id: TASK-14
 title: Consider multi-server / remote-host Janus setups
-status: To Do
-assignee: []
+status: Backlog
+assignee: [human]
 created_date: '2026-07-12 13:51'
-updated_date: '2026-07-14 12:33'
+updated_date: '2026-08-01 15:33'
 labels:
   - consider
   - architecture
@@ -18,7 +18,6 @@ references:
   - backlog/tasks/task-3 - Tmuxhop.md
   - backlog/tasks/task-10 - muxpod-direct-links.md
 ---
-
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
