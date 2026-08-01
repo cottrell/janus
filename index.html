@@ -384,7 +384,7 @@
       line-height: 1;
       cursor: pointer;
     }
-    .action-group .action-btn:first-child {
+    .action-group .action-btn:first-child:not(:last-child) {
       border-top-right-radius: 0;
       border-bottom-right-radius: 0;
     }
@@ -392,12 +392,12 @@
       border-radius: 0;
       border-left: none;
     }
-    .action-group .action-btn:last-child {
+    .action-group .action-btn:last-child:not(:first-child) {
       border-top-left-radius: 0;
       border-bottom-left-radius: 0;
       border-left: none;
     }
-    .action-btn.bounce, .action-btn.down {
+    .action-btn.bounce {
       opacity: 0.4;
       font-size: 0.65rem;
     }
@@ -408,14 +408,6 @@
     .action-btn.bounce.active:hover {
       background: #422006;
       border-color: #ca8a04;
-    }
-    .action-btn.down.active {
-      opacity: 1;
-      color: #fca5a5;
-    }
-    .action-btn.down.active:hover {
-      background: #450a0a;
-      border-color: #ef4444;
     }
     .action-btn:hover:not(:disabled) {
       color: #dbeafe;
@@ -969,70 +961,48 @@
             class="action-btn"
             :class="buttonClass(p, 'ops')"
             :disabled="isBusy(p, 'ops')"
-            @click="runAction(p, 'ops', 'up')"
-          >ops up</button>
+            :title="isUp(p, 'ops') ? 'ops is up — click to stop' : 'ops is down — click to start'"
+            @click="runAction(p, 'ops', isUp(p, 'ops') ? 'down' : 'up')"
+          >{{ isUp(p, 'ops') ? 'ops up' : 'ops down' }}</button>
           <button
             class="action-btn bounce"
             :class="{ active: isUp(p, 'ops') }"
             :disabled="isBusy(p, 'ops')"
             @click="runAction(p, 'ops', 'bounce')"
           >bounce</button>
-          <button
-            class="action-btn down"
-            :class="{ active: isUp(p, 'ops') }"
-            :disabled="isBusy(p, 'ops')"
-            @click="runAction(p, 'ops', 'down')"
-          >down</button>
         </div>
         <div class="action-group" v-if="canSwarm(p)">
           <button
             class="action-btn"
             :class="buttonClass(p, 'swarm')"
             :disabled="isBusy(p, 'swarm')"
-            @click="runAction(p, 'swarm', 'up')"
-          >swarm up</button>
+            :title="isUp(p, 'swarm') ? 'swarm is up — click to stop' : 'swarm is down — click to start'"
+            @click="runAction(p, 'swarm', isUp(p, 'swarm') ? 'down' : 'up')"
+          >{{ isUp(p, 'swarm') ? 'swarm up' : 'swarm down' }}</button>
           <button
             class="action-btn bounce"
             :class="{ active: isUp(p, 'swarm') }"
             :disabled="isBusy(p, 'swarm')"
             @click="runAction(p, 'swarm', 'bounce')"
           >bounce</button>
-          <button
-            class="action-btn down"
-            :class="{ active: isUp(p, 'swarm') }"
-            :disabled="isBusy(p, 'swarm')"
-            @click="runAction(p, 'swarm', 'down')"
-          >down</button>
         </div>
         <div class="action-group" v-if="canBabysit(p)">
           <button
             class="action-btn"
             :class="buttonClass(p, 'babysit')"
-            :disabled="isBusy(p, 'babysit') || swarmBlocked(p, 'babysit')"
-            :title="swarmBlocked(p, 'babysit') ? 'start swarm first' : ''"
-            @click="runAction(p, 'babysit', 'start')"
-          >babysit on</button>
-          <button
-            class="action-btn down"
-            :class="{ active: isUp(p, 'babysit') || babysitState(p) === 'stopped' }"
-            :disabled="isBusy(p, 'babysit')"
-            @click="runAction(p, 'babysit', 'stop')"
-          >off</button>
+            :disabled="isBusy(p, 'babysit') || (!isUp(p, 'babysit') && swarmBlocked(p, 'babysit'))"
+            :title="!isUp(p, 'babysit') && swarmBlocked(p, 'babysit') ? 'start swarm first' : (isUp(p, 'babysit') ? 'babysit is on — click to stop' : 'babysit is off — click to start')"
+            @click="runAction(p, 'babysit', isUp(p, 'babysit') ? 'stop' : 'start')"
+          >{{ isUp(p, 'babysit') ? 'babysit on' : 'babysit off' }}</button>
         </div>
         <div class="action-group" v-if="canTasks(p)">
           <button
             class="action-btn"
             :class="buttonClass(p, 'tasks')"
-            :disabled="isBusy(p, 'tasks') || swarmBlocked(p, 'tasks')"
-            :title="swarmBlocked(p, 'tasks') ? 'start swarm first' : ''"
-            @click="runAction(p, 'tasks', 'start')"
-          >tasks on</button>
-          <button
-            class="action-btn down"
-            :class="{ active: !isUp(p, 'tasks') && tasksState(p) === 'stopped' }"
-            :disabled="isBusy(p, 'tasks')"
-            @click="runAction(p, 'tasks', 'stop')"
-          >off</button>
+            :disabled="isBusy(p, 'tasks') || (!isUp(p, 'tasks') && swarmBlocked(p, 'tasks'))"
+            :title="!isUp(p, 'tasks') && swarmBlocked(p, 'tasks') ? 'start swarm first' : (isUp(p, 'tasks') ? 'tasks is on — click to stop' : 'tasks is off — click to start')"
+            @click="runAction(p, 'tasks', isUp(p, 'tasks') ? 'stop' : 'start')"
+          >{{ isUp(p, 'tasks') ? 'tasks on' : 'tasks off' }}</button>
         </div>
         <span
           v-if="actionStatus[p.project]"
@@ -1517,12 +1487,6 @@ createApp({
     function isUp(p, kind) {
       return !!status.value[p.project]?.[kind]?.up;
     }
-    function babysitState(p) {
-      return status.value[p.project]?.babysit?.state || '';
-    }
-    function tasksState(p) {
-      return status.value[p.project]?.tasks?.state || '';
-    }
     function isBusy(p, kind) {
       return actionStatus.value[p.project]?.busy === kind;
     }
@@ -1614,8 +1578,6 @@ createApp({
       canBabysit,
       canTasks,
       isUp,
-      babysitState,
-      tasksState,
       swarmBlocked,
       isBusy,
       buttonClass,
