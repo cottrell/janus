@@ -43,3 +43,10 @@ After start, machine map (not git): `/tmp/nudge-swarm/janus/runtime.json`
 Config: `.aiswarm/config.yaml` (cwd walk-up), `$AISWARM_CONFIG`, or explicit path.
 Messaging: `aiswarm send <pane> "msg"` (durable log). Do NOT raw `tmux send-keys`.
 <!-- AISWARM/NUDGE GUIDELINES END -->
+
+## Git
+
+- **Commit your work** when a task or meaningful change is done — do not leave finished changes uncommitted waiting for the user to ask.
+- Include agent name/model in the commit message.
+- `git add` and commit new/completed backlog task files with the related code change.
+- Do not push unless asked.
