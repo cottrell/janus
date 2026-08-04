@@ -1123,6 +1123,11 @@ createApp({
     const newProjectNameInput = ref(null);
     const showMuxpodLinks = ref(isMobileClient());
     const visibleProjects = computed(() => {
+      if (curationMode.value) {
+        if (curatedProjects.value.size === 0) return [];
+        const curated = projects.value.filter((p) => curatedProjects.value.has(p.project));
+        return curated.sort((a, b) => a.project.localeCompare(b.project));
+      }
       if (curatedProjects.value.size > 0) {
         const curated = projects.value.filter((p) => curatedProjects.value.has(p.project));
         return curated.sort((a, b) => a.project.localeCompare(b.project));
