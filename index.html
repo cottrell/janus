@@ -1338,7 +1338,7 @@ createApp({
       activeProject.value = activeProject.value === p.project ? '' : p.project;
     }
     function selectProjectFilter(p) {
-      toggleProjectFilter(p);
+      projectClick(p);
       closeCommand();
     }
     function jumpToProject(p) {
