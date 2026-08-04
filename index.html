@@ -708,11 +708,8 @@
     <button class="refresh-btn" @click="toggleTopView" :title="topView === 'matrix' ? 'switch to row layout' : 'switch to matrix layout'">
       {{ topView === 'matrix' ? '☰ rows' : '⊞ matrix' }}
     </button>
-    <button class="refresh-btn" @click="toggleClickMode" :title="clickMode === 'filter' ? 'project click filters cards; switch to jump-to-card' : 'project click jumps to card; switch to filter'">
-      {{ clickMode === 'filter' ? '⌖ filter' : '⇢ jump' }}
-    </button>
-    <button class="refresh-btn" @click="toggleCurationMode" :title="curationMode ? 'exit curation mode' : 'enter curation mode to build a custom list'">
-      {{ curationMode ? '✓ curate' : '○ curate' }}
+    <button class="refresh-btn" @click="toggleClickMode" :title="clickMode === 'filter' ? 'mode: filter (click filters to project)' : (clickMode === 'jump' ? 'mode: jump (click scrolls to project)' : 'mode: curate (click selects for custom list)')">
+      {{ clickMode === 'filter' ? '⌖ filter' : (clickMode === 'jump' ? '⇢ jump' : '✓ curate') }}
     </button>
     <button class="refresh-btn" @click="openNewProject" title="Create new project">+ new</button>
   </h1>
@@ -720,11 +717,11 @@
     <div class="matrix-row" v-for="p in projects" :key="`m-${p.project}`">
       <button
         class="matrix-name"
-        :class="{ active: activeProject === p.project }"
+        :class="{ active: activeProject === p.project, 'has-curated': clickMode === 'curate' && curatedProjects.has(p.project) }"
         type="button"
         :title="intentTitle(p)"
         @click="projectClick(p)"
-      >{{ p.project }}</button>
+      ><span v-if="clickMode === 'curate' && curatedProjects.has(p.project)" class="curation-check">✓</span>{{ p.project }}</button>
       <template v-for="kind in ['ops', 'swarm', 'babysit', 'tasks']" :key="kind">
         <button
           v-if="hasKind(p, kind)"
@@ -741,7 +738,7 @@
   </div>
   <nav class="filter-nav" v-if="topView === 'rows' && projects.length > 1" aria-label="Project filters">
     <div class="top-control-list">
-      <div v-if="curationMode && curatedProjects.size > 0" class="top-control-row">
+      <div v-if="clickMode === 'curate' && curatedProjects.size > 0" class="top-control-row">
         <div class="top-control-label">selected</div>
         <div class="top-control-items">
           <button
@@ -761,18 +758,18 @@
         </div>
       </div>
       <div class="top-control-row">
-        <div class="top-control-label">{{ curationMode ? 'curate' : clickMode }}</div>
+        <div class="top-control-label">{{ clickMode }}</div>
         <div class="top-control-items">
           <button
             v-for="p in projects"
             :key="p.project"
             class="filter-btn"
-            :class="{ active: activeProject === p.project, 'has-curated': curationMode && curatedProjects.has(p.project) }"
+            :class="{ active: activeProject === p.project, 'has-curated': clickMode === 'curate' && curatedProjects.has(p.project) }"
             type="button"
-            :title="curationMode ? 'Click to select/deselect' : (activeProject === p.project ? 'Click again or press Esc to clear' : 'Filter to this project')"
+            :title="clickMode === 'curate' ? 'Click to select/deselect' : (activeProject === p.project ? 'Click again or press Esc to clear' : 'Filter to this project')"
             @click="projectClick(p)"
           >
-            <span v-if="curationMode && curatedProjects.has(p.project)" class="curation-check">✓</span>
+            <span v-if="clickMode === 'curate' && curatedProjects.has(p.project)" class="curation-check">✓</span>
             {{ p.project }}
           </button>
         </div>
@@ -1100,7 +1097,6 @@ createApp({
     const projects = ref([]);
     const topView = ref(localStorage.getItem('janus-top-view') || 'matrix');
     const clickMode = ref(localStorage.getItem('janus-click-mode') || 'filter');
-    const curationMode = ref(localStorage.getItem('janus-curation-mode') === 'true');
     const kindLabels = { ops: 'ops', swarm: 'swm', babysit: 'sit', tasks: 'tsk' };
     const actionStatus = ref({});
     const status = ref({});
@@ -1123,12 +1119,8 @@ createApp({
     const newProjectNameInput = ref(null);
     const showMuxpodLinks = ref(isMobileClient());
     const visibleProjects = computed(() => {
-      if (curationMode.value) {
+      if (clickMode.value === 'curate') {
         if (curatedProjects.value.size === 0) return [];
-        const curated = projects.value.filter((p) => curatedProjects.value.has(p.project));
-        return curated.sort((a, b) => a.project.localeCompare(b.project));
-      }
-      if (curatedProjects.value.size > 0) {
         const curated = projects.value.filter((p) => curatedProjects.value.has(p.project));
         return curated.sort((a, b) => a.project.localeCompare(b.project));
       }
@@ -1564,16 +1556,15 @@ createApp({
       localStorage.setItem('janus-top-view', topView.value);
     }
     function toggleClickMode() {
-      clickMode.value = clickMode.value === 'filter' ? 'jump' : 'filter';
+      const modes = ['filter', 'jump', 'curate'];
+      const current = modes.indexOf(clickMode.value);
+      const next = (current + 1) % modes.length;
+      clickMode.value = modes[next];
       localStorage.setItem('janus-click-mode', clickMode.value);
-    }
-    function toggleCurationMode() {
-      curationMode.value = !curationMode.value;
-      localStorage.setItem('janus-curation-mode', curationMode.value.toString());
-      if (!curationMode.value) clearCurated();
+      if (clickMode.value !== 'curate') clearCurated();
     }
     function projectClick(p) {
-      if (curationMode.value) {
+      if (clickMode.value === 'curate') {
         toggleCuratedProject(p);
       } else if (clickMode.value === 'jump') {
         jumpToProject(p);
@@ -1640,8 +1631,6 @@ createApp({
       toggleTopView,
       clickMode,
       toggleClickMode,
-      curationMode,
-      toggleCurationMode,
       projectClick,
       hasKind,
       visibleProjects,
