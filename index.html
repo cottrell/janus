@@ -705,8 +705,8 @@
     <img src="/logo.png" alt="Janus" width="40" height="40" class="brand-logo">
     Janus
     <button class="refresh-btn" @click="load">↻ refresh</button>
-    <button class="refresh-btn" @click="toggleTopView" :title="topView === 'matrix' ? 'switch to row layout' : 'switch to matrix layout'">
-      {{ topView === 'matrix' ? '☰ rows' : '⊞ matrix' }}
+    <button class="refresh-btn" @click="toggleTopView" :title="topView === 'matrix' ? 'view: matrix (click for rows)' : 'view: rows (click for matrix)'">
+      {{ topView === 'matrix' ? '⊞ matrix' : '☰ rows' }}
     </button>
     <button class="refresh-btn" @click="toggleClickMode" :title="clickMode === 'filter' ? 'mode: filter (click filters to project)' : (clickMode === 'jump' ? 'mode: jump (click scrolls to project)' : 'mode: curate (click selects for custom list)')">
       {{ clickMode === 'filter' ? '⌖ filter' : (clickMode === 'jump' ? '⇢ jump' : '✓ curate') }}
