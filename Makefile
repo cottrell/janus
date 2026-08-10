@@ -27,6 +27,10 @@ autostart:
 	uv run python mk/autostart.py
 sync:
 	uv sync
+bounce:
+	systemctl --user restart janus.service
+restart: bounce
+
 
 
 CMD := $(c)
