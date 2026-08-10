@@ -50,4 +50,3 @@ Messaging: `aiswarm send <pane> "msg"` (durable log). Do NOT raw `tmux send-keys
 - Include agent name/model in the commit message.
 - `git add` and commit new/completed backlog task files with the related code change.
 - Do not push unless asked.
-
