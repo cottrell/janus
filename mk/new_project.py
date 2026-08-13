@@ -258,7 +258,7 @@ def step_readme(project_path, name, description, log=None):
         say("  README.md already exists — skipping", log)
         return
     readme_path.write_text(
-        f"# {name}\n\n{description or 'A new project managed by Janus.'}\n"
+        f"# {name}\n\n{description or 'TODO'}\n"
     )
     say("  Created README.md", log)
 
