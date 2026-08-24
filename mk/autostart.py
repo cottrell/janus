@@ -43,7 +43,10 @@ def main():
             continue
 
         project = d.get("project", f.stem)
-        if not d.get("autostart"):
+        autostart_ops = d.get("autostart_ops", d.get("autostart", False))
+        autostart_swarm = d.get("autostart_swarm", False)
+
+        if not autostart_ops and not autostart_swarm:
             print(f"[{project}] autostart not enabled, skipping.")
             continue
 
@@ -54,7 +57,7 @@ def main():
         resolved_path = Path(local_path).expanduser()
 
         # Ops
-        if ops := d.get("tmuxp_ops"):
+        if autostart_ops and (ops := d.get("tmuxp_ops")):
             yaml_path = resolved_path / ops
             if yaml_path.is_file():
                 sess = get_session_name(yaml_path)
@@ -70,7 +73,7 @@ def main():
                 print(f"[{project}] missing ops config file: {yaml_path}")
 
         # Swarm
-        if swarm := d.get("tmuxp_swarm"):
+        if autostart_swarm and (swarm := d.get("tmuxp_swarm")):
             yaml_path = resolved_path / swarm
             if yaml_path.is_file():
                 sess = get_session_name(yaml_path)

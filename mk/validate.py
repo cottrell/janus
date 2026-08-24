@@ -10,7 +10,8 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 KNOWN_FIELDS = {'project', 'local_path', 'github_url', 'gitlab_url',
                 'tmuxp_ops', 'tmuxp_swarm', 'description', 'links',
                 'port_scope', 'is_own_repo', 'skip_clone', 'ops_up', 'swarm_up',
-                'ide_links', 'autostart', 'meta', 'muxpod_server_id'}
+                'ide_links', 'autostart', 'autostart_ops', 'autostart_swarm',
+                'meta', 'muxpod_server_id'}
 
 # port_scope values: "global" (default) = checked for cross-project conflicts
 #                    "compose" or other  = exempt (isolated network)
