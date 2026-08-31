@@ -62,7 +62,7 @@ If a tool is missing, that button/link simply does nothing; the rest still loads
 |------|------|
 | **git** | Card last-updated; `janus.repo` list; new-project init |
 | **tmux** / **[tmuxp](https://github.com/tmux-python/tmuxp)** | Ops up/down/bounce (`make ops-up` / `ops-down`) |
-| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | **Optional** — agent swarms / babysit / autostart only if you want them |
+| **[nudge](https://github.com/cottrell/nudge)** / **`aiswarm`** | **Optional** — agent swarms / babysit / autostart only if you want them. Tasks and babysit toggles start for **1h** (`--for 1h`); shift-click runs until you stop. |
 | **[Backlog.md](https://github.com/MrLesk/Backlog.md)** | New-project init; backlog browser links |
 | **GitHub CLI** (`gh`) | Optional new-project `gh repo create` (off by default) |
 | **graphify** | Graph icon when output exists under `local_path` |

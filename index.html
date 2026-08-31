@@ -778,7 +778,7 @@
           :disabled="isBusy(p, kind) || swarmBlocked(p, kind)"
           type="button"
           :title="statusTitle(p, kind)"
-          @click="runTopAction(p, kind)"
+          @click="runTopAction(p, kind, $event)"
         >{{ kindLabels[kind] }}</button>
         <span v-else class="matrix-cell none">·</span>
       </template>
@@ -967,7 +967,7 @@
           :disabled="isBusy(p, 'babysit') || swarmBlocked(p, 'babysit')"
           type="button"
           :title="statusTitle(p, 'babysit')"
-          @click="runTopAction(p, 'babysit')"
+          @click="runTopAction(p, 'babysit', $event)"
         >{{ p.project }}</button>
       </div>
     </div>
@@ -982,7 +982,7 @@
           :disabled="isBusy(p, 'tasks') || swarmBlocked(p, 'tasks')"
           type="button"
           :title="statusTitle(p, 'tasks')"
-          @click="runTopAction(p, 'tasks')"
+          @click="runTopAction(p, 'tasks', $event)"
         >{{ p.project }}</button>
       </div>
     </div>
@@ -1076,18 +1076,18 @@
             class="action-btn"
             :class="buttonClass(p, 'babysit')"
             :disabled="isBusy(p, 'babysit') || (!isUp(p, 'babysit') && swarmBlocked(p, 'babysit'))"
-            :title="!isUp(p, 'babysit') && swarmBlocked(p, 'babysit') ? 'start swarm first' : (isUp(p, 'babysit') ? 'babysit is on — click to stop' : 'babysit is off — click to start')"
-            @click="runAction(p, 'babysit', isUp(p, 'babysit') ? 'stop' : 'start')"
-          >{{ isUp(p, 'babysit') ? 'babysit on' : 'babysit off' }}</button>
+            :title="loopTitle(p, 'babysit')"
+            @click="runLoopToggle(p, 'babysit', $event)"
+          >{{ loopButtonLabel(p, 'babysit') }}</button>
         </div>
         <div class="action-group" v-if="canTasks(p)">
           <button
             class="action-btn"
             :class="buttonClass(p, 'tasks')"
             :disabled="isBusy(p, 'tasks') || (!isUp(p, 'tasks') && swarmBlocked(p, 'tasks'))"
-            :title="!isUp(p, 'tasks') && swarmBlocked(p, 'tasks') ? 'start swarm first' : (isUp(p, 'tasks') ? 'tasks is on — click to stop' : 'tasks is off — click to start')"
-            @click="runAction(p, 'tasks', isUp(p, 'tasks') ? 'stop' : 'start')"
-          >{{ isUp(p, 'tasks') ? 'tasks on' : 'tasks off' }}</button>
+            :title="loopTitle(p, 'tasks')"
+            @click="runLoopToggle(p, 'tasks', $event)"
+          >{{ loopButtonLabel(p, 'tasks') }}</button>
         </div>
         <span
           v-if="actionStatus[p.project]"
@@ -1647,30 +1647,77 @@ createApp({
       if (s?.up) return 'up';
       return '';
     }
+    function formatRemaining(secs) {
+      secs = Math.max(0, Math.floor(Number(secs) || 0));
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      if (h && m) return `${h}h${m}m`;
+      if (h) return `${h}h`;
+      if (m) return `${m}m`;
+      return `${secs}s`;
+    }
+    function remainingSecs(p, kind) {
+      const rem = status.value[p.project]?.[kind]?.remaining_secs;
+      return rem == null ? null : rem;
+    }
+    function loopButtonLabel(p, kind) {
+      if (!isUp(p, kind)) return `${kind} off`;
+      const rem = remainingSecs(p, kind);
+      if (rem != null) return `${kind} ${formatRemaining(rem)}`;
+      return `${kind} on`;
+    }
+    function loopTitle(p, kind) {
+      if (!isUp(p, kind) && swarmBlocked(p, kind)) return 'start swarm first';
+      if (isUp(p, kind)) {
+        const rem = remainingSecs(p, kind);
+        const left = rem != null ? ` ${formatRemaining(rem)} left` : ' until stop';
+        return `${kind} is on${left} — click to stop`;
+      }
+      return `${kind} is off — click to start for 1h (shift-click: until stop)`;
+    }
     function statusTitle(p, kind) {
       const s = status.value[p.project]?.[kind];
       if (swarmBlocked(p, kind)) return `${p.project}: start swarm first`;
       if (s?.error) return `${p.project}: ${s.error}`;
-      if (s?.up) return (kind === 'babysit' || kind === 'tasks')
-        ? `${p.project}: ${kind} up`
-        : `${p.project}: stop ${kind}`;
+      if (s?.up) {
+        if (kind === 'babysit' || kind === 'tasks') {
+          const rem = remainingSecs(p, kind);
+          const left = rem != null ? ` ${formatRemaining(rem)} left` : ' until stop';
+          return `${p.project}: ${kind} on${left}`;
+        }
+        return `${p.project}: stop ${kind}`;
+      }
+      if (kind === 'babysit' || kind === 'tasks') {
+        return `${p.project}: start ${kind} for 1h (shift-click: until stop)`;
+      }
       return `${p.project}: start ${kind}`;
     }
-    function runTopAction(p, kind) {
+    function runLoopToggle(p, kind, ev) {
+      if (isUp(p, kind)) runAction(p, kind, 'stop');
+      else runAction(p, kind, 'start', { forever: !!(ev && ev.shiftKey) });
+    }
+    function runTopAction(p, kind, ev) {
       if (swarmBlocked(p, kind)) return;
       if ((kind === 'babysit' || kind === 'tasks') && isUp(p, kind)) {
         jumpToProject(p);
         return;
       }
-      const action = (kind === 'babysit' || kind === 'tasks') ? 'start' : isUp(p, kind) ? 'down' : 'up';
-      runAction(p, kind, action);
+      if (kind === 'babysit' || kind === 'tasks') {
+        runAction(p, kind, 'start', { forever: !!(ev && ev.shiftKey) });
+        return;
+      }
+      runAction(p, kind, isUp(p, kind) ? 'down' : 'up');
     }
-    async function runAction(p, kind, action) {
+    async function runAction(p, kind, action, opts = {}) {
       const msgMap = { up: 'starting', down: 'stopping', bounce: 'bouncing', start: 'starting', stop: 'stopping' };
       const msg = msgMap[action] || 'acting';
       actionStatus.value[p.project] = { busy: kind, text: `${kind} ${msg}` };
       try {
-        const r = await fetch(`/api/projects/${encodeURIComponent(p.project)}/${kind}/${action}`, {
+        let url = `/api/projects/${encodeURIComponent(p.project)}/${kind}/${action}`;
+        if ((kind === 'babysit' || kind === 'tasks') && action === 'start') {
+          url += opts.forever ? '?duration=forever' : '?duration=1h';
+        }
+        const r = await fetch(url, {
           method: 'POST',
         });
         const data = await r.json();
@@ -1732,7 +1779,10 @@ createApp({
       swarmBlocked,
       isBusy,
       buttonClass,
+      loopButtonLabel,
+      loopTitle,
       statusTitle,
+      runLoopToggle,
       runTopAction,
       runAction,
       newProjectOpen,
