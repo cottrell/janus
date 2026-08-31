@@ -3,6 +3,7 @@ import os
 import shlex
 import socket
 import subprocess
+import time
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -461,6 +462,36 @@ def get_babysit_enabled_panes(config_path: Path) -> set[str]:
                 enabled_panes.add(f"{win_idx}.{pane_idx}")
     return enabled_panes
 
+def _read_until(path: Path) -> float | None:
+    try:
+        data = json.loads(path.read_text() or "{}")
+    except Exception:
+        return None
+    if not isinstance(data, dict) or "until" not in data:
+        return None
+    try:
+        return float(data["until"])
+    except (TypeError, ValueError):
+        return None
+
+
+def _remaining_fields(until: float | None) -> dict:
+    if until is None:
+        return {}
+    remaining = int(until - time.time())
+    if remaining <= 0:
+        return {"until": until, "remaining_secs": 0, "expired": True}
+    return {"until": until, "remaining_secs": remaining}
+
+
+def _timed_start_argv(group: str, config: Path, duration: str) -> list[str]:
+    argv = _swarm_argv(group, "start", str(config))
+    dur = (duration or "1h").strip().lower()
+    if dur not in ("", "0", "forever", "off"):
+        argv.extend(["--for", dur])
+    return argv
+
+
 def babysit_status(root, config):
     try:
         name = session_name(config)
@@ -511,11 +542,16 @@ def babysit_status(root, config):
         
         babysit_panes[pane_id] = pane_state
 
+    timed = _remaining_fields(_read_until(runtime_dir / "babysit_until.json"))
+    if timed.get("expired"):
+        return {"state": "stopped", "up": False}
+
     if any(s == "stale" for s in babysit_panes.values()):
         return {"state": "errored", "up": False, "error": "one or more workers are stale"}
 
+    extra = {k: v for k, v in timed.items() if k != "expired"}
     if any(s == "on" for s in babysit_panes.values()):
-        return {"state": "running", "up": True}
+        return {"state": "running", "up": True, **extra}
 
     return {"state": "stopped", "up": False}
 
@@ -540,7 +576,16 @@ def tasks_status(root, config):
     if not enabled_file.is_file():
         return {"state": "stopped", "up": False}
     try:
-        if not bool(json.loads(enabled_file.read_text()).get("enabled")):
+        enabled_data = json.loads(enabled_file.read_text())
+        if not bool(enabled_data.get("enabled")):
+            return {"state": "stopped", "up": False}
+        until = enabled_data.get("until")
+        try:
+            until = float(until) if until is not None else None
+        except (TypeError, ValueError):
+            until = None
+        timed = _remaining_fields(until)
+        if timed.get("expired"):
             return {"state": "stopped", "up": False}
     except Exception as e:
         return {"state": "errored", "up": False, "error": f"tasks enabled marker unreadable: {e}"}
@@ -554,8 +599,9 @@ def tasks_status(root, config):
     except Exception:
         return {"state": "errored", "up": False, "error": "session_worker.pid unreadable"}
 
+    extra = {k: v for k, v in timed.items() if k != "expired"}
     if is_pid_running(pid):
-        return {"state": "running", "up": True}
+        return {"state": "running", "up": True, **extra}
     return {"state": "errored", "up": False, "error": "session worker is stale"}
 
 def swarm_panes_status(root, config):
@@ -695,9 +741,9 @@ def swarm_bounce(project: str):
 
 
 @app.post("/api/projects/{project}/babysit/start")
-def babysit_start(project: str):
+def babysit_start(project: str, duration: str = "1h"):
     root, config = resolve_config(load_project(project), "swarm")
-    return run_command(_swarm_argv("babysit", "start", str(config)), root)
+    return run_command(_timed_start_argv("babysit", config, duration), root)
 
 
 @app.post("/api/projects/{project}/babysit/stop")
@@ -707,9 +753,9 @@ def babysit_stop(project: str):
 
 
 @app.post("/api/projects/{project}/tasks/start")
-def tasks_start(project: str):
+def tasks_start(project: str, duration: str = "1h"):
     root, config = resolve_config(load_project(project), "swarm")
-    return run_command(_swarm_argv("tasks", "start", str(config)), root)
+    return run_command(_timed_start_argv("tasks", config, duration), root)
 
 
 @app.post("/api/projects/{project}/tasks/stop")
