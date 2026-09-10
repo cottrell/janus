@@ -1,31 +1,3 @@
-<!-- BACKLOG.MD MCP GUIDELINES START -->
-
-<CRITICAL_INSTRUCTION>
-
-## BACKLOG WORKFLOW INSTRUCTIONS
-
-This project uses Backlog.md MCP for all task and project management activities.
-
-**CRITICAL GUIDANCE**
-
-- If your client supports MCP resources, read `backlog://workflow/overview` to understand when and how to use Backlog for this project.
-- If your client only supports tools or the above request fails, call `backlog.get_backlog_instructions()` to load the tool-oriented overview. Use the `instruction` selector when you need `task-creation`, `task-execution`, or `task-finalization`.
-
-- **First time working here?** Read the overview resource IMMEDIATELY to learn the workflow
-- **Already familiar?** You should have the overview cached ("## Backlog.md Overview (MCP)")
-- **When to read it**: BEFORE creating tasks, or when you're unsure whether to track work
-
-These guides cover:
-- Decision framework for when to create tasks
-- Search-first workflow to avoid duplicates
-- Links to detailed guides for task creation, execution, and finalization
-- MCP tools reference
-
-You MUST read the overview resource to understand the complete workflow. The information is NOT summarized here.
-
-</CRITICAL_INSTRUCTION>
-
-<!-- BACKLOG.MD MCP GUIDELINES END -->
 
 <!-- AISWARM/NUDGE GUIDELINES START -->
 ## Swarm
@@ -50,3 +22,27 @@ Messaging: `aiswarm send <pane> "msg"` (durable log). Do NOT raw `tmux send-keys
 - Include agent name/model in the commit message.
 - `git add` and commit new/completed backlog task files with the related code change.
 - Do not push unless asked.
+
+<!-- BACKLOG.MD GUIDELINES START -->
+<!-- backlog.md-instructions-version: 1.51.0 -->
+<CRITICAL_INSTRUCTION>
+
+## Backlog.md Workflow
+
+This project uses Backlog.md for task and project management.
+
+**At the beginning of each conversation in this project, run `backlog instructions overview` before answering or taking action. Re-read it only if you have not read it yet in the current conversation.**
+
+Use the overview to decide whether to search, read, create, or update Backlog tasks.
+
+Before task lifecycle actions, read the matching detailed guide:
+- `backlog instructions task-creation` before creating or splitting tasks
+- `backlog instructions task-execution` before planning, changing status or assignee, adding a plan or implementation notes, or implementing task work
+- `backlog instructions task-finalization` before checking acceptance criteria, writing final summaries, or moving tasks to terminal statuses
+
+Use `backlog <command> --help` before running unfamiliar commands. Help shows options, fields, and examples.
+
+Do not edit Backlog task, draft, document, decision, or milestone markdown files directly. Use the `backlog` CLI so metadata, relationships, and history stay consistent.
+
+</CRITICAL_INSTRUCTION>
+<!-- BACKLOG.MD GUIDELINES END -->
