@@ -12,4 +12,4 @@ windows:
       - make autostart
   - window_name: backlog-browser
     panes:
-      - backlog browser -p <TODO_BACKLOG_PORT> --no-open
+      - backlog browser -p <TODO_BACKLOG_PORT> --no-open & sleep 0.5 && socat TCP6-LISTEN:<TODO_BACKLOG_PORT>,ipv6only,fork,reuseaddr TCP4:127.0.0.1:<TODO_BACKLOG_PORT>
