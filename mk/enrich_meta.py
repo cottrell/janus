@@ -90,6 +90,8 @@ def clean_output(text, agent_name):
 
 def enrich_one(project_file, agent_name, cmd_prefix, model):
     data = json.loads(project_file.read_text())
+    if data.get("disabled"):
+        return data.get("project", project_file.stem), "disabled"
     meta = data.get("meta") or {}
     if has_intent(meta):
         return data["project"], "skip"

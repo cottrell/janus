@@ -43,6 +43,9 @@ def main():
             continue
 
         project = d.get("project", f.stem)
+        if d.get("disabled"):
+            print(f"[{project}] disabled, skipping.")
+            continue
         autostart_ops = d.get("autostart_ops", d.get("autostart", False))
         autostart_swarm = d.get("autostart_swarm", False)
 

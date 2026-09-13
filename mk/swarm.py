@@ -31,6 +31,9 @@ def main():
         except Exception:
             continue
 
+        if d.get("disabled"):
+            continue
+
         if not d.get("swarm_up", True):
             continue
 

@@ -323,7 +323,10 @@ def get_links():
     projects = []
     for f in DATA_DIR.glob("*.json"):
         try:
-            projects.append(json.loads(f.read_text()))
+            p = json.loads(f.read_text())
+            if p.get("disabled"):
+                continue
+            projects.append(p)
         except Exception:
             pass
 
@@ -345,6 +348,8 @@ def load_project(project):
         except Exception:
             continue
         if data.get("project") == project:
+            if data.get("disabled"):
+                raise HTTPException(status_code=404, detail="project is disabled")
             return data
     raise HTTPException(status_code=404, detail="project not found")
 
