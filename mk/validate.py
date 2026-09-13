@@ -11,7 +11,7 @@ KNOWN_FIELDS = {'project', 'local_path', 'github_url', 'gitlab_url',
                 'tmuxp_ops', 'tmuxp_swarm', 'description', 'links',
                 'port_scope', 'is_own_repo', 'skip_clone', 'ops_up', 'swarm_up',
                 'ide_links', 'autostart', 'autostart_ops', 'autostart_swarm',
-                'meta', 'muxpod_server_id'}
+                'meta', 'muxpod_server_id', 'disabled'}
 
 # port_scope values: "global" (default) = checked for cross-project conflicts
 #                    "compose" or other  = exempt (isolated network)
@@ -77,20 +77,21 @@ for f in json_files:
 
     # links
     seen_ports = set()
-    for i, l in enumerate(d.get('links', [])):
-        unknown_lf = set(l) - KNOWN_LINK_FIELDS
-        if unknown_lf:
-            err(f, f"links[{i}] unknown fields: {sorted(unknown_lf)}")
-        if 'label' not in l:
-            err(f, f"links[{i}] missing 'label'")
-        if 'url' not in l:
-            err(f, f"links[{i}] missing 'url'")
-        url = l.get('url') or ''
-        if m := re.search(r':(\d+)', url):
-            port = m.group(1)
-            if port not in seen_ports and d.get('port_scope', 'global') == 'global':
-                port_index[port].append((f.name, l.get('label', '?'), url))
-                seen_ports.add(port)
+    if not d.get('disabled'):
+        for i, l in enumerate(d.get('links', [])):
+            unknown_lf = set(l) - KNOWN_LINK_FIELDS
+            if unknown_lf:
+                err(f, f"links[{i}] unknown fields: {sorted(unknown_lf)}")
+            if 'label' not in l:
+                err(f, f"links[{i}] missing 'label'")
+            if 'url' not in l:
+                err(f, f"links[{i}] missing 'url'")
+            url = l.get('url') or ''
+            if m := re.search(r':(\d+)', url):
+                port = m.group(1)
+                if port not in seen_ports and d.get('port_scope', 'global') == 'global':
+                    port_index[port].append((f.name, l.get('label', '?'), url))
+                    seen_ports.add(port)
 
 conflicts = {}
 for port, entries in port_index.items():
