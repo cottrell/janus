@@ -1,4 +1,3 @@
-
 <!-- AISWARM/NUDGE GUIDELINES START -->
 ## Swarm
 
