@@ -15,9 +15,9 @@ DATA = get_data_dir()
 
 # (source, model label for meta.summaries, argv prefix before the prompt)
 AGENTS = [
-    ("agy", "Gemini 3.5 Flash (Low)", ["agy", "--model", "Gemini 3.5 Flash (Low)", "--dangerously-skip-permissions", "--print"]),
-    ("codex", "gpt-5.4-mini", ["codex", "exec", "-m", "gpt-5.4-mini", "--dangerously-bypass-approvals-and-sandbox"]),
-    ("grok", "grok-composer-2.5-fast", ["grok", "-m", "grok-composer-2.5-fast", "--always-approve", "-p"]),
+    ("agy", "Gemini 3.6 Flash (Low)", ["agy", "--model", "Gemini 3.6 Flash (Low)", "--dangerously-skip-permissions", "--print"]),
+    ("codex", "gpt-5.6-luna", ["codex", "exec", "-m", "gpt-5.6-luna", "--dangerously-bypass-approvals-and-sandbox"]),
+    ("grok", "grok-4.6", ["grok", "-m", "grok-4.6", "--always-approve", "-p"]),
     ("claude", "haiku", ["claude", "--model", "haiku", "--dangerously-skip-permissions", "-p"]),
 ]
 
