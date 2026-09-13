@@ -1,0 +1,2 @@
+{"project": "myproject", "category": "commercial", "tier": "P0_arr", "target": "cashflow", "weight": 0.3, "notes": "Example commercial project"}
+{"project": "janus", "category": "infrastructure", "tier": "P1_tooling", "weight": 0.1, "notes": "Dashboard & project registry ops"}
