@@ -54,6 +54,8 @@ def run_agent(agent_name, cmd_prefix, path, desc):
 
 
 def clean_output(text, agent_name):
+    # Strip ANSI escape sequences (e.g. from TUI output)
+    text = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', text)
     lines = [ln.strip() for ln in text.strip().splitlines() if ln.strip()]
     skip_prefixes = (
         "tokens used", "I am running", "### Summary", "I'll ", "I will ",
@@ -65,7 +67,7 @@ def clean_output(text, agent_name):
             continue
         if ln.startswith("- ") or ln.startswith("* "):
             continue
-        if "ERROR" in ln or "tool_error" in ln or "\x1b[" in ln:
+        if "ERROR" in ln or "tool_error" in ln:
             continue
         if len(ln) < 20:
             continue
@@ -73,6 +75,8 @@ def clean_output(text, agent_name):
     if not candidates:
         raise RuntimeError(f"no summary parsed from {agent_name} output: {text[-300:]}")
     summary = candidates[0]
+    # Strip leading preamble text if concatenated onto the summary line
+    summary = re.sub(r"^[a-z0-9\s.,;:!-]+?(?:summary|intent|notes|layout|orchestrator)[.:\s]+\s*", "", summary, flags=re.IGNORECASE)
     summary = re.sub(r"^[\"']|[\"']$", "", summary)
     return summary
 
