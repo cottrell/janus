@@ -73,9 +73,16 @@ def clean_output(text, agent_name):
             continue
         candidates.append(ln)
     if not candidates:
-        raise RuntimeError(f"no summary parsed from {agent_name} output: {text[-300:]}")
+        # Fallback: take last non-empty line
+        if lines:
+            candidates = [lines[-1]]
+        else:
+            raise RuntimeError(f"no summary parsed from {agent_name} output: {text[-300:]}")
     summary = candidates[0]
-    # Strip leading preamble text if concatenated onto the summary line
+    # If grok concatenated prompt repetition into the summary line, split at sentence boundary if needed
+    if summary.count('.') > 1:
+        # If line starts with lower case or prompt fragment, clean leading fragment up to sentence start
+        summary = re.sub(r'^[a-z0-9\s.,;:!\'\(\)-]+?[.\?!]\s*(?=[A-Z])', '', summary)
     summary = re.sub(r"^[a-z0-9\s.,;:!-]+?(?:summary|intent|notes|layout|orchestrator)[.:\s]+\s*", "", summary, flags=re.IGNORECASE)
     summary = re.sub(r"^[\"']|[\"']$", "", summary)
     return summary
