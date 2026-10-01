@@ -3,32 +3,32 @@ windows:
   - window_name: grid
     layout: tiled
     panes:
-      - shell_command: "codex --dangerously-bypass-approvals-and-sandbox -m gpt-6-sol"
+      - shell_command: "codex:heavy"
         nudge:
           title: codex heavy
           agent: codex
           monitor: true
-      - shell_command: "codex --dangerously-bypass-approvals-and-sandbox -m gpt-6-luna -c model_reasoning_effort=low"
+      - shell_command: "codex:light"
         nudge:
           title: codex light
           agent: codex
           monitor: true
-      - shell_command: "claude --dangerously-skip-permissions"
+      - shell_command: "claude:heavy"
         nudge:
           title: claude heavy
           agent: claude
           monitor: true
-      - shell_command: "claude --dangerously-skip-permissions --model haiku"
+      - shell_command: "claude:light"
         nudge:
           title: claude light
           agent: claude
           monitor: true
-      - shell_command: "agy --dangerously-skip-permissions"
+      - shell_command: "antigravity:solo"
         nudge:
           title: antigravity
           agent: antigravity
           monitor: true
-      - shell_command: "grok --always-approve -m grok-build"
+      - shell_command: "grok:solo"
         nudge:
           title: grok
           agent: grok
