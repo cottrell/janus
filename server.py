@@ -389,13 +389,17 @@ def babysit_configured(config):
 
 
 def tmux_session_exists(name):
-    result = subprocess.run(
-        ["tmux", "has-session", "-t", f"={name}"],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    return result.returncode == 0
+    try:
+        result = subprocess.run(
+            ["tmux", "has-session", "-t", f"={name}"],
+            text=True,
+            capture_output=True,
+            timeout=5,
+            check=False,
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
 
 
 _makefile_cache = {}
@@ -427,6 +431,16 @@ def has_make_target(root: Path, target: str) -> bool:
         return target in targets
     except Exception:
         return False
+
+
+def ops_hook(root: Path, action: str) -> list[str] | None:
+    for script_rel in (f"mk/{action}.sh", f"bin/{action}", f"{action}.sh"):
+        script = root / script_rel
+        if script.is_file() and os.access(script, os.X_OK):
+            return [str(script)]
+    if has_make_target(root, action):
+        return ["make", action]
+    return None
 
 
 def run_command(args, cwd):
@@ -672,25 +686,15 @@ def status():
             try:
                 root, config = resolve_config(project, kind)
                 name = session_name(config)
-                is_up = tmux_session_exists(name)
-                # If kind is ops, allow make status or mk/status.sh to report status (exit 0 => up)
-                if kind == "ops":
-                    if has_make_target(root, "status"):
-                        try:
-                            res = subprocess.run(["make", "status"], cwd=root, capture_output=True, timeout=5)
-                            is_up = res.returncode == 0
-                        except Exception:
-                            pass
-                    else:
-                        for script_rel in ("mk/status.sh", "bin/status", "status.sh"):
-                            script = root / script_rel
-                            if script.is_file() and os.access(script, os.X_OK):
-                                try:
-                                    res = subprocess.run([str(script)], cwd=root, capture_output=True, timeout=5)
-                                    is_up = res.returncode == 0
-                                except Exception:
-                                    pass
-                                break
+                hook = ops_hook(root, "status") if kind == "ops" else None
+                if hook:
+                    try:
+                        res = subprocess.run(hook, cwd=root, capture_output=True, timeout=5)
+                        is_up = res.returncode == 0
+                    except (OSError, subprocess.TimeoutExpired) as e:
+                        raise HTTPException(status_code=500, detail=f"status check failed: {e}")
+                else:
+                    is_up = tmux_session_exists(name)
 
                 project_status[kind] = {
                     "session": name,
@@ -738,35 +742,32 @@ def status():
 
 
 def _run_ops_down(root: Path, config: Path):
-    # 1. mk/down.sh or bin/down if present
-    for script_rel in ("mk/down.sh", "bin/down", "down.sh"):
-        script = root / script_rel
-        if script.is_file() and os.access(script, os.X_OK):
-            run_command([str(script)], root)
-            break
-    # 2. make down if Makefile defines target
-    if has_make_target(root, "down"):
-        run_command(["make", "down"], root)
-
-    # 3. Always ensure the tmux session is cleaned up
+    errors = []
+    hook = ops_hook(root, "down")
+    if hook:
+        try:
+            run_command(hook, root)
+        except HTTPException as e:
+            errors.append(e)
     try:
         name = session_name(config)
         if tmux_session_exists(name):
             run_command(["tmux", "kill-session", "-t", f"={name}"], root)
-    except Exception:
-        pass
+    except HTTPException as e:
+        errors.append(e)
+    if errors:
+        raise HTTPException(
+            status_code=errors[0].status_code,
+            detail="; ".join(str(e.detail) for e in errors),
+        )
 
 
 @app.post("/api/projects/{project}/ops/up")
 def ops_up(project: str):
     root, config = resolve_config(load_project(project), "ops")
-    # Check if project defines make up or mk/up.sh
-    for script_rel in ("mk/up.sh", "bin/up", "up.sh"):
-        script = root / script_rel
-        if script.is_file() and os.access(script, os.X_OK):
-            return run_command([str(script)], root)
-    if has_make_target(root, "up"):
-        return run_command(["make", "up"], root)
+    hook = ops_hook(root, "up")
+    if hook:
+        return run_command(hook, root)
     return run_command(["tmuxp", "load", "-d", str(config)], root)
 
 
@@ -782,12 +783,9 @@ def ops_bounce(project: str):
     root, config = resolve_config(load_project(project), "ops")
     _run_ops_down(root, config)
     time.sleep(1)
-    if has_make_target(root, "up"):
-        return run_command(["make", "up"], root)
-    for script_rel in ("mk/up.sh", "bin/up", "up.sh"):
-        script = root / script_rel
-        if script.is_file() and os.access(script, os.X_OK):
-            return run_command([str(script)], root)
+    hook = ops_hook(root, "up")
+    if hook:
+        return run_command(hook, root)
     return run_command(["tmuxp", "load", "-d", str(config)], root)
 
 
