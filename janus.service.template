@@ -22,6 +22,7 @@ WorkingDirectory=<TODO_JANUS_CHECKOUT>
 ExecStart=/bin/bash -l -c 'tmuxp load -d ops.yaml'
 
 ExecStop=/usr/bin/tmux kill-session -t ops-janus
+KillMode=none
 
 Restart=on-failure
 RestartSec=5

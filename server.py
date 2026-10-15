@@ -398,6 +398,37 @@ def tmux_session_exists(name):
     return result.returncode == 0
 
 
+_makefile_cache = {}
+
+
+def has_make_target(root: Path, target: str) -> bool:
+    mf = root / "Makefile"
+    if not mf.is_file():
+        return False
+    try:
+        sig = mf.stat().st_mtime_ns
+        cache_key = (str(mf), sig)
+        targets = _makefile_cache.get(cache_key)
+        if targets is None:
+            res = subprocess.run(
+                ["make", "-qp"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            targets = set()
+            for line in res.stdout.splitlines():
+                if ":" in line and not line.startswith("\t") and not line.startswith("#"):
+                    name = line.split(":", 1)[0].strip()
+                    if name and not name.startswith("%") and " " not in name:
+                        targets.add(name)
+            _makefile_cache[cache_key] = targets
+        return target in targets
+    except Exception:
+        return False
+
+
 def run_command(args, cwd):
     try:
         result = subprocess.run(
@@ -641,9 +672,29 @@ def status():
             try:
                 root, config = resolve_config(project, kind)
                 name = session_name(config)
+                is_up = tmux_session_exists(name)
+                # If kind is ops, allow make status or mk/status.sh to report status (exit 0 => up)
+                if kind == "ops":
+                    if has_make_target(root, "status"):
+                        try:
+                            res = subprocess.run(["make", "status"], cwd=root, capture_output=True, timeout=5)
+                            is_up = res.returncode == 0
+                        except Exception:
+                            pass
+                    else:
+                        for script_rel in ("mk/status.sh", "bin/status", "status.sh"):
+                            script = root / script_rel
+                            if script.is_file() and os.access(script, os.X_OK):
+                                try:
+                                    res = subprocess.run([str(script)], cwd=root, capture_output=True, timeout=5)
+                                    is_up = res.returncode == 0
+                                except Exception:
+                                    pass
+                                break
+
                 project_status[kind] = {
                     "session": name,
-                    "up": tmux_session_exists(name),
+                    "up": is_up,
                 }
                 if kind == "swarm" and project_status[kind]["up"]:
                     project_status[kind]["panes"] = swarm_panes_status(root, config)
@@ -686,26 +737,58 @@ def status():
     return result
 
 
+def _run_ops_down(root: Path, config: Path):
+    # 1. mk/down.sh or bin/down if present
+    for script_rel in ("mk/down.sh", "bin/down", "down.sh"):
+        script = root / script_rel
+        if script.is_file() and os.access(script, os.X_OK):
+            run_command([str(script)], root)
+            break
+    # 2. make down if Makefile defines target
+    if has_make_target(root, "down"):
+        run_command(["make", "down"], root)
+
+    # 3. Always ensure the tmux session is cleaned up
+    try:
+        name = session_name(config)
+        if tmux_session_exists(name):
+            run_command(["tmux", "kill-session", "-t", f"={name}"], root)
+    except Exception:
+        pass
+
+
 @app.post("/api/projects/{project}/ops/up")
 def ops_up(project: str):
     root, config = resolve_config(load_project(project), "ops")
+    # Check if project defines make up or mk/up.sh
+    for script_rel in ("mk/up.sh", "bin/up", "up.sh"):
+        script = root / script_rel
+        if script.is_file() and os.access(script, os.X_OK):
+            return run_command([str(script)], root)
+    if has_make_target(root, "up"):
+        return run_command(["make", "up"], root)
     return run_command(["tmuxp", "load", "-d", str(config)], root)
 
 
 @app.post("/api/projects/{project}/ops/down")
 def ops_down(project: str):
     root, config = resolve_config(load_project(project), "ops")
-    name = session_name(config)
-    return run_command(["tmux", "kill-session", "-t", f"={name}"], root)
+    _run_ops_down(root, config)
+    return {"ok": True}
 
 
 @app.post("/api/projects/{project}/ops/bounce")
 def ops_bounce(project: str):
     root, config = resolve_config(load_project(project), "ops")
-    name = session_name(config)
-    cmd = f"tmux kill-session -t '={name}' 2>/dev/null; sleep 1; tmuxp load -d {config}"
-    subprocess.Popen(["bash", "-c", cmd], cwd=root, start_new_session=True)
-    return {"ok": True}
+    _run_ops_down(root, config)
+    time.sleep(1)
+    if has_make_target(root, "up"):
+        return run_command(["make", "up"], root)
+    for script_rel in ("mk/up.sh", "bin/up", "up.sh"):
+        script = root / script_rel
+        if script.is_file() and os.access(script, os.X_OK):
+            return run_command([str(script)], root)
+    return run_command(["tmuxp", "load", "-d", str(config)], root)
 
 
 def _swarm_argv(*args: str) -> list[str]:
