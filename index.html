@@ -1181,6 +1181,7 @@ createApp({
     const newProjectResult = ref(null);
     const newProjectNameInput = ref(null);
     const showMuxpodLinks = ref(isMobileClient());
+    const shiftHeld = ref(false);
     const visibleProjects = computed(() => {
       if (clickMode.value === 'curate') {
         if (curatedProjects.value.size === 0) return [];
@@ -1290,15 +1291,23 @@ createApp({
       load();
       setInterval(refreshStatus, 10000);
       window.addEventListener('keydown', handleGlobalKeydown);
+      window.addEventListener('keydown', handleShiftKeydown);
+      window.addEventListener('keyup', handleShiftKeyup);
+      window.addEventListener('blur', clearShiftHeld);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           load();
           refreshStatus();
+        } else {
+          clearShiftHeld();
         }
       });
     });
     onBeforeUnmount(() => {
       window.removeEventListener('keydown', handleGlobalKeydown);
+      window.removeEventListener('keydown', handleShiftKeydown);
+      window.removeEventListener('keyup', handleShiftKeyup);
+      window.removeEventListener('blur', clearShiftHeld);
       if (muxpodMq) {
         if (muxpodMq.removeEventListener) muxpodMq.removeEventListener('change', updateMuxpodVisibility);
         else muxpodMq.removeListener(updateMuxpodVisibility);
@@ -1660,8 +1669,17 @@ createApp({
       const rem = status.value[p.project]?.[kind]?.remaining_secs;
       return rem == null ? null : rem;
     }
+    function handleShiftKeydown(e) {
+      if (e.key === 'Shift') shiftHeld.value = true;
+    }
+    function handleShiftKeyup(e) {
+      if (e.key === 'Shift') shiftHeld.value = false;
+    }
+    function clearShiftHeld() {
+      shiftHeld.value = false;
+    }
     function loopButtonLabel(p, kind) {
-      if (!isUp(p, kind)) return `${kind} off`;
+      if (!isUp(p, kind)) return shiftHeld.value ? `${kind} off (∞)` : `${kind} off (1h)`;
       const rem = remainingSecs(p, kind);
       if (rem != null) return `${kind} ${formatRemaining(rem)}`;
       return `${kind} on`;
