@@ -443,6 +443,15 @@ def ops_hook(root: Path, action: str) -> list[str] | None:
     return None
 
 
+def ops_status_hook(root: Path) -> list[str] | None:
+    """Only explicitly prefixed ops-status scripts are health checks."""
+    for script_rel in ("mk/ops-status.sh", "bin/ops-status", "ops-status.sh"):
+        script = root / script_rel
+        if script.is_file() and os.access(script, os.X_OK):
+            return [str(script)]
+    return None
+
+
 def run_command(args, cwd):
     try:
         result = subprocess.run(
@@ -686,15 +695,20 @@ def status():
             try:
                 root, config = resolve_config(project, kind)
                 name = session_name(config)
-                hook = ops_hook(root, "status") if kind == "ops" else None
-                if hook:
+                hook = ops_status_hook(root) if kind == "ops" else None
+                # A live tmux session is authoritative for tmuxp-managed ops.
+                # Generic make status targets describe project-specific work,
+                # so only an explicitly prefixed ops-status script is fallback.
+                if tmux_session_exists(name):
+                    is_up = True
+                elif hook:
                     try:
                         res = subprocess.run(hook, cwd=root, capture_output=True, timeout=5)
                         is_up = res.returncode == 0
                     except (OSError, subprocess.TimeoutExpired) as e:
                         raise HTTPException(status_code=500, detail=f"status check failed: {e}")
                 else:
-                    is_up = tmux_session_exists(name)
+                    is_up = False
 
                 project_status[kind] = {
                     "session": name,
