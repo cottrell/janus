@@ -7,3 +7,6 @@ data/
 output/
 __pycache__/
 *.pyc
+*.json
+!package.json
+!tsconfig.json
